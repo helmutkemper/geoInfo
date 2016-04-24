@@ -1,5 +1,7 @@
 <?php
 
+  //?start_debug=1&debug_host=127.0.0.1&debug_port=10137
+
   session_start ();
 
   define( "CLASS_URL_UINT", 3 );
@@ -34,8 +36,6 @@
   include_once( "./class/mongodb/normalize.class.php" );
   include_once( "./class/crypt/crypt.class.php" );
   include_once( "./class/util/util.class.php" );
-
-  //->    include_once ( "./RulesData/GoogleplacesphotosData.class.php" );
 
   //->    use Aws\S3\S3Client;
 
@@ -325,13 +325,6 @@
         }
       }
 
-      /*$vlbSecurity = $instanceClassGObj->testMethodSecurity ( $_REQUEST, $vgaArguments );
-
-      if ( !$vlbSecurity )
-      {
-        throw new Exception ();
-      }*/
-
       $returnGArr = $instanceClassGObj->$dataByUrlGArr[ CONTROLLER_URL_UINT ]( $_REQUEST, $vgaArguments );
 
       if ( $pageOffsetGUInt < 0 )
@@ -343,14 +336,24 @@
       $_REQUEST[ "offset" ] =  $pageOffsetGUInt + $pageLimitGUInt;
       $_REQUEST[ "cy" ]     =  $pagePreviousQueryGStr;
 
-      $cryptQueryGStr     =  Crypt::encrypt ( $_REQUEST );
-      //$cryptQueryGStr     =  Query::make( $pagePreviousQueryGStr );
+      //$cryptQueryGStr     =  Crypt::encrypt ( $_REQUEST );
+      $cryptQueryGStr     =  Crypt::encrypt ( $pagePreviousQueryGStr );
 
       $_REQUEST[ "offset" ] =  $pageOffsetGUInt - $pageLimitGUInt;
 
       if( $outputTypeGStr == "json_mobile" )
       {
-        $returnGArr = array( "meta" => array( "limit" => ( INT )$pageLimitGUInt, "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REDIRECT_URL" ] . "?query={$cryptQueryGStr}", "offset" => ( INT )$pageOffsetGUInt, "previous" => ( !$pageOffsetGUInt ) ? null : "http://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REDIRECT_URL" ] . "?query={$vlsQueryPrevious}", "total_count" => ( INT )$pageTotalGObj, "success" => true, "action" => $headerActionGArr, "error" => array( Crypt::decrypt( $cryptQueryGStr ) ) ), "objects" => $returnGArr );
+        $returnGArr = array( "meta" => array(
+          "limit" => ( INT )$pageLimitGUInt,
+          "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REDIRECT_URL" ] . "?query={$cryptQueryGStr}",
+          "offset" => ( INT )$pageOffsetGUInt,
+          "previous" => ( !$pageOffsetGUInt ) ? null : "http://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REDIRECT_URL" ] . "?query={$vlsQueryPrevious}",
+          "total_count" => ( INT )$pageTotalGObj,
+          "success" => true,
+          "action" => $headerActionGArr,
+          "error" => array( Crypt::decrypt( $cryptQueryGStr ) ) ),
+          "objects" => $returnGArr
+        );
         $outputGStr = json_encode( $returnGArr );
         $outputGStr = str_replace( "\\/", "/", $outputGStr );
 

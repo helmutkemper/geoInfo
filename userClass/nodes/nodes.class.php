@@ -4,6 +4,7 @@
   {
     function __construct()
     {
+      parent::__construct();
       self::connect();
     }
 
@@ -13,13 +14,15 @@
       );
     }
 
+    //http://localhost/nodes/nodes/get/amenity:school/-8.1313/-34.9146/-8.1047/-34.8710
+    //http://localhost/nodes/nodes/get/type:value/bottom/left/upper/right
     public function get(){
       global $parameterGArr;
-      $this->setOutputCsv();
+      $this->setOutputJSonMobile();
       $this->setCollection( "nodes" );
-      //$this->setGarbageCollector( array( "tags.highway", "_id", "id_node", "id_changesets", "id_user", "version", "visible" ) );
-      $this->setAppendFirst( array( "lat", "lgn", "maxSpeed" ) );
-      $this->setRescueCollection( array( "location.0", "location.1", "tags.maxspeed.val" ) );
+      $this->setGarbageCollector( array( "tags.highway", "_id", "id_node", "id_changesets", "id_user", "version", "visible" ) );
+      //$this->setAppendFirst( array( "lat", "lgn", "maxSpeed" ) );
+      //$this->setRescueCollection( array( "location.0", "location.1", "tags.maxspeed.val" ) );
 
       $filterLArr = array();
 
@@ -29,11 +32,16 @@
         foreach( $parameterGArr[ 0 ] as $filterDataLStr ){
           $filterDataLArr = explode( ":", $filterDataLStr );
 
-          if( $filterDataLArr[ 1 ] == ( int ) $filterDataLArr[ 1 ] ){
-            $filterDataLArr[ 1 ] = ( int ) $filterDataLArr[ 1 ];
-          }
-          else if( $filterDataLArr[ 1 ] == ( double ) $filterDataLArr[ 1 ] ){
-            $filterDataLArr[ 1 ] = ( double ) $filterDataLArr[ 1 ];
+          if( is_numeric( $filterDataLArr[ 1 ] ) )
+          {
+            if( $filterDataLArr[ 1 ] == ( int )$filterDataLArr[ 1 ] )
+            {
+              $filterDataLArr[ 1 ] = ( int )$filterDataLArr[ 1 ];
+            }
+            else if( $filterDataLArr[ 1 ] == ( double )$filterDataLArr[ 1 ] )
+            {
+              $filterDataLArr[ 1 ] = ( double )$filterDataLArr[ 1 ];
+            }
           }
 
           if( isset( $filterLArr[ "tags.{$filterDataLArr[ 0 ]}.val" ] ) ){
@@ -45,40 +53,17 @@
         }
       }
 
+
       if( ( is_numeric( $parameterGArr[ 1 ] ) ) && ( is_numeric( $parameterGArr[ 2 ] ) ) && ( is_numeric( $parameterGArr[ 3 ] ) ) && ( is_numeric( $parameterGArr[ 4 ] ) ) ){
         $filterLArr = array_merge(
           $filterLArr,
           array(
             'location' => array(
-              '$near' => array(
-                ( float ) $parameterGArr[ 1 ], ( float ) $parameterGArr[ 2 ]
-              ),
-              '$maxDistance' => ( ( float ) $parameterGArr[ 3 ] ),
-              '$minDistance' => ( ( float ) $parameterGArr[ 4 ] )
-            )
-          )
-        );
-      }
-      else if( ( is_numeric( $parameterGArr[ 1 ] ) ) && ( is_numeric( $parameterGArr[ 2 ] ) ) && ( is_numeric( $parameterGArr[ 3 ] ) ) ){
-        $filterLArr = array_merge(
-          $filterLArr,
-          array(
-            'location' => array(
-              '$near' => array(
-                ( float ) $parameterGArr[ 1 ], ( float ) $parameterGArr[ 2 ]
-              ),
-              '$maxDistance' => ( ( float ) $parameterGArr[ 3 ] )
-            )
-          )
-        );
-      }
-      else if( ( is_numeric( $parameterGArr[ 1 ] ) ) && ( is_numeric( $parameterGArr[ 2 ] ) ) ){
-        $filterLArr = array_merge(
-          $filterLArr,
-          array(
-            'location' => array(
-              '$near' => array(
-                ( float ) $parameterGArr[ 1 ], ( float ) $parameterGArr[ 2 ]
+              '$geoWithin' => array(
+                '$box' => array(
+                  array( ( float ) $parameterGArr[ 1 ], ( float ) $parameterGArr[ 2 ] ),
+                  array( ( float ) $parameterGArr[ 3 ], ( float ) $parameterGArr[ 4 ] )
+                )
               )
             )
           )

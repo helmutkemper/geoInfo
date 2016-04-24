@@ -1,7 +1,7 @@
 <?php
 
 
-  $_SERVER[ "DISPLAY_ERROS" ] = 1;
+  $_SERVER[ "DISPLAY_ERROS" ] = 0;
 
   // on/off para definir o formato da saída como json ou string de teste
   $_SERVER[ "json_output" ] = "on";

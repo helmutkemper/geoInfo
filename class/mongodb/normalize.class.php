@@ -44,6 +44,10 @@
         $dataQueryLArr = Crypt::decrypt( $_REQUEST[ "query" ] );
 
         if( isset( $dataQueryLArr[ "cy" ] ) ){
+
+          $pageOffsetGUInt += $dataQueryLArr[ "offset" ];
+          $pagePreviousQueryGStr = $dataQueryLArr[ "cy" ];
+
           $cursorLObj = $this->collectionCObj->find( $dataQueryLArr[ "cy" ] );
           $pageTotalGObj = $cursorLObj->count();
           $cursorLObj->skip( $dataQueryLArr[ "offset" ] );
