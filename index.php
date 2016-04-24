@@ -150,11 +150,18 @@
       $vgaArguments    =  array ();
     }
 
-    if ( strtolower ( $dataByUrlGArr[ MODULE_URL_UINT ] ) == "favicon.ico" )
+    //if ( strtolower ( $dataByUrlGArr[ MODULE_URL_UINT ] ) == "favicon.ico" )
+    if ( strtolower ( $dataByUrlGArr[ CLASS_URL_UINT ] ) == "favicon.ico" )
     {
       header( "Content-Type: image/png" );
       readfile ( "./Favicon.png" );
       die ();
+    }
+
+    if ( strtolower ( $dataByUrlGArr[ CLASS_URL_UINT ] ) == "open" )
+    {
+      readfile( "./userClass" . $_SERVER["REQUEST_URI"] );
+      die();
     }
 
     if ( !$dataByUrlGArr[ MODULE_URL_UINT ] )
@@ -337,17 +344,19 @@
       $_REQUEST[ "cy" ]     =  $pagePreviousQueryGStr;
 
       //$cryptQueryGStr     =  Crypt::encrypt ( $_REQUEST );
-      $cryptQueryGStr     =  Crypt::encrypt ( $pagePreviousQueryGStr );
+      $cryptQueryGStr     =  Crypt::encrypt ( array( "cy" => $pagePreviousQueryGStr, "limit" => $_REQUEST[ "limit" ], "offset" => $_REQUEST[ "offset" ] ) );
 
       $_REQUEST[ "offset" ] =  $pageOffsetGUInt - $pageLimitGUInt;
+
+      $_SERVER[ "REQUEST_URI" ] = preg_replace( "/(.*?)\?.*/", "$1", $_SERVER[ "REQUEST_URI" ] );
 
       if( $outputTypeGStr == "json_mobile" )
       {
         $returnGArr = array( "meta" => array(
           "limit" => ( INT )$pageLimitGUInt,
-          "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REDIRECT_URL" ] . "?query={$cryptQueryGStr}",
+          "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?query={$cryptQueryGStr}",
           "offset" => ( INT )$pageOffsetGUInt,
-          "previous" => ( !$pageOffsetGUInt ) ? null : "http://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REDIRECT_URL" ] . "?query={$vlsQueryPrevious}",
+          "previous" => ( !$pageOffsetGUInt ) ? null : $_REQUEST[ "REQUEST_URI" ] . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?query={$vlsQueryPrevious}",
           "total_count" => ( INT )$pageTotalGObj,
           "success" => true,
           "action" => $headerActionGArr,
