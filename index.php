@@ -365,7 +365,6 @@
 
         header( "Content-Length: " . strlen( $outputGStr ), true );
       }
-
       else if( $outputTypeGStr == "json" )
       {
         //$returnGArr = array( "meta" => array( "limit" => ( INT )$pageLimitGUInt, "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REDIRECT_URL" ] . "?query={$cryptQueryGStr}", "offset" => ( INT )$pageOffsetGUInt, "previous" => ( !$pageOffsetGUInt ) ? null : "http://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REDIRECT_URL" ] . "?query={$vlsQueryPrevious}", "total_count" => ( INT )$pageTotalGObj, "success" => true, "action" => $headerActionGArr, "error" => array( Crypt::decrypt( $cryptQueryGStr ) ) ), "objects" => $returnGArr );
@@ -383,6 +382,26 @@
 
         header( "Content-Length: " . strlen( $outputGStr ), true );
       }
+      else if( $outputTypeGStr == "csv" )
+      {
+        $outputGStr = "";
+        foreach( $returnGArr as $returnValueLArr )
+        {
+          $outputGStr .= implode( ",", $returnValueLArr ) . "\r\n";
+        }
+
+        header( "Content-Type: application/csv" );
+        header( "Access-Control-Allow-Origin: *" );
+        header( 'Access-Control-Allow-Methods: GET' );
+
+        header( 'Expires: Mon, 20 Dec 1998 01:00:00 GMT' );
+        header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . 'GMT' );
+        header( 'Cache-Control: no-cache, must-revalidate' );
+        header( 'Pragma: no-cache' );
+
+        header( "Content-Length: " . strlen( $outputGStr ), true );
+      }
+
       print $outputGStr;
 
       ob_flush();
