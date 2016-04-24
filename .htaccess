@@ -1,0 +1,4 @@
+#php_flag display_errors On
+RewriteEngine On
+RewriteBase /
+RewriteRule ^([^_]). index.php
