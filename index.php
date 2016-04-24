@@ -32,8 +32,8 @@
 
   include_once( "./class/mongodb/db.class.php" );
   include_once( "./class/mongodb/normalize.class.php" );
-  include_once( "./class/Crypt/Crypt.class.php" );
-
+  include_once( "./class/crypt/crypt.class.php" );
+  include_once( "./class/util/util.class.php" );
 
   //->    include_once ( "./RulesData/GoogleplacesphotosData.class.php" );
 
@@ -43,108 +43,106 @@
   //->    $s3 = new S3 ( $_SERVER[ "AWS_ACCESS_KEY_ID" ] , $_SERVER[ "AWS_SECRET_KEY" ] );
 
   new Crypt();
-  
-  $MongoDbVgObj                  =  new db ();
-  $pageTotalVgObj                =  0;
-  $pageLimitVgUInt                =  null;
-  $pageOffsetVgUInt               =  null;
-  $orderByVgStr                  =  null;
-  $sortVgStr                     =  null;
-  $pageNextVgUInt                 =  null;
-  $pagePreviousVgUInt             =  null;
-  $pageNextVgStr                 =  null;
-  $actionVgStr                   =  null;
-  $idByUrlVgArr                  =  array ();
-  $moduleVgStr                   =  null;
-  $controllerVgStr               =  null;
-  $headerActionVgArr             =  array ();
-  $sessionVgArr          =  array ();
-  $pagePreviousQueryVgStr = null;
 
-  global $MongoDbVgObj;
-  global $pageTotalVgObj;
-  global $pageLimitVgUInt;
-  global $pageOffsetVgUInt;
-  global $orderByVgStr;
-  global $sortVgStr;
-  global $pageNextVgUInt;
-  global $pagePreviousVgUInt;
-  global $pageNextVgStr;
-  global $actionVgStr;
-  global $idByUrlVgArr;
-  global $moduleVgStr;
-  global $controllerVgStr;
-  global $headerActionVgArr;
-  global $sessionVgArr;
-  global $pagePreviousQueryVgStr;
+  $outputTypeGStr = "json_mobile";
 
-  $MongoDbVgObj->connect ();
-  $MongoDbVgObj->setDataBase();
+  $pageTotalGObj                =  0;
+  $pageLimitGUInt                =  null;
+  $pageOffsetGUInt               =  null;
+  $orderByGStr                  =  null;
+  $sortGStr                     =  null;
+  $pageNextGUInt                 =  null;
+  $pagePreviousGUInt             =  null;
+  $pageNextGStr                 =  null;
+  $actionGStr                   =  null;
+  $idByUrlGArr                  =  array ();
+  $moduleGStr                   =  null;
+  $controllerGStr               =  null;
+  $headerActionGArr             =  array ();
+  $sessionGArr          =  array ();
+  $pagePreviousQueryGStr = null;
+
+  global $outputTypeGStr;
+  global $pageTotalGObj;
+  global $pageLimitGUInt;
+  global $pageOffsetGUInt;
+  global $orderByGStr;
+  global $sortGStr;
+  global $pageNextGUInt;
+  global $pagePreviousGUInt;
+  global $pageNextGStr;
+  global $actionGStr;
+  global $idByUrlGArr;
+  global $moduleGStr;
+  global $controllerGStr;
+  global $headerActionGArr;
+  global $sessionGArr;
+  global $pagePreviousQueryGStr;
 
   try
   {
     if ( isset ( $_REQUEST[ "orderBy" ] ) )
     {
-      $orderByVgStr    =  $_REQUEST[ "orderBy" ];
+      $orderByGStr    =  $_REQUEST[ "orderBy" ];
       unset ( $_REQUEST[ "orderBy" ] );
     }
 
     if ( isset ( $_REQUEST[ "sort" ] ) )
     {
-      $sortVgStr    =  $_REQUEST[ "sort" ];
+      $sortGStr    =  $_REQUEST[ "sort" ];
       unset ( $_REQUEST[ "sort" ] );
     }
 
     if ( !isset ( $_REQUEST[ "limit" ] ) )
     {
-      $pageLimitVgUInt    =  $_SERVER[ "paginationOffset" ];
+      $pageLimitGUInt    =  $_SERVER[ "paginationOffset" ];
     }
     else
     {
-      $pageLimitVgUInt    =  (INT) $_REQUEST[ "limit" ];
+      $pageLimitGUInt    =  (INT) $_REQUEST[ "limit" ];
       unset ( $_REQUEST[ "limit" ] );
     }
 
     if ( !isset ( $_REQUEST[ "offset" ] ) )
     {
-      $pageOffsetVgUInt   =  0;
+      $pageOffsetGUInt   =  0;
     }
     else
     {
-      $pageOffsetVgUInt   =  $_SERVER[ "offset" ];
+      $pageOffsetGUInt   =  $_SERVER[ "offset" ];
       unset ( $_REQUEST[ "offset" ] );
     }
 
     if ( !is_null ( $_REQUEST[ "cy" ] ) )
     {
-      $pagePreviousQueryVgStr =  $_REQUEST[ "cy" ];
+      $pagePreviousQueryGStr =  $_REQUEST[ "cy" ];
     }
 
     // Divide as vari�veis passadas por URL
-    $dataByUrlVgArr        =  explode ( "/", @$_SERVER[ "REDIRECT_URL" ] );
+    $dataByUrlGArr        =  explode ( "/", @$_SERVER[ "REDIRECT_URL" ] );
 
-    foreach ( $dataByUrlVgArr as $dataUrlVgStr )
+    foreach ( $dataByUrlGArr as $dataUrlGStr )
     {
-      if ( preg_match ( "/^[0-9a-fA-F]{24}$/si", $dataUrlVgStr ) )
+      if ( preg_match ( "/^[0-9a-fA-F]{24}$/si", $dataUrlGStr ) )
       {
-        $idByUrlVgArr[]  =  $dataUrlVgStr;
+        $idByUrlGArr[]  =  $dataUrlGStr;
       }
     }
 
-    if ( !is_array ( $sessionVgArr[ "Configuration" ] ) )
+    if ( !is_array ( $sessionGArr[ "Configuration" ] ) )
     {
-      $sessionVgArr[ "Configuration" ] = array ();
+      $sessionGArr[ "Configuration" ] = array ();
     }
 
-    if ( ( is_numeric ( $dataByUrlVgArr[ CONTROLLER_URL_UINT ] ) ) || ( preg_match ( "/^[0-9a-fA-F]{24}$/si", $dataByUrlVgArr[ CONTROLLER_URL_UINT ] ) ) )
+    if ( ( is_numeric ( $dataByUrlGArr[ CONTROLLER_URL_UINT ] ) ) || ( preg_match ( "/^[0-9a-fA-F]{24}$/si", $dataByUrlGArr[ CONTROLLER_URL_UINT ] ) ) )
     {
-      $vgaArguments    =  array_slice ( $dataByUrlVgArr, CONTROLLER_URL_UINT );
-      unset ( $dataByUrlVgArr[ CONTROLLER_URL_UINT ] );
+      $vgaArguments    =  array_slice ( $dataByUrlGArr, CONTROLLER_URL_UINT );
+      unset ( $dataByUrlGArr[ CONTROLLER_URL_UINT ] );
     }
 
-    else if ( isset ( $dataByUrlVgArr[ CONTROLLER_URL_UINT ] ) )
+    else if ( isset ( $dataByUrlGArr[ CONTROLLER_URL_UINT ] ) )
     {
-      $vgaArguments    =  array_slice ( $dataByUrlVgArr, CONTROLLER_URL_UINT + 1 );
+      $vgaArguments    =  array_slice ( $dataByUrlGArr, CONTROLLER_URL_UINT + 1 );
     }
 
     else
@@ -152,69 +150,71 @@
       $vgaArguments    =  array ();
     }
 
-    if ( strtolower ( $dataByUrlVgArr[ MODULE_URL_UINT ] ) == "favicon.ico" )
+    if ( strtolower ( $dataByUrlGArr[ MODULE_URL_UINT ] ) == "favicon.ico" )
     {
       header( "Content-Type: image/png" );
       readfile ( "./Favicon.png" );
       die ();
     }
 
-    if ( !$dataByUrlVgArr[ MODULE_URL_UINT ] )
+    if ( !$dataByUrlGArr[ MODULE_URL_UINT ] )
     {
       throw new Exception ( "You don't have permission to access this server" );
     }
 
-    if ( !is_file ( "./userClass/{$dataByUrlVgArr[ CLASS_URL_UINT ]}/{$dataByUrlVgArr[ MODULE_URL_UINT ]}.class.php" ) )
+    if ( !is_file ( "./userClass/{$dataByUrlGArr[ CLASS_URL_UINT ]}/{$dataByUrlGArr[ MODULE_URL_UINT ]}.class.php" ) )
     {
-      throw new Exception ( "The class file '{$dataByUrlVgArr[ CLASS_URL_UINT ]}/{$dataByUrlVgArr[ MODULE_URL_UINT ]}.class.php' was not found in module directory." );
+      throw new Exception ( "The class file '{$dataByUrlGArr[ CLASS_URL_UINT ]}/{$dataByUrlGArr[ MODULE_URL_UINT ]}.class.php' was not found in module directory." );
     }
 
-    include_once ( "./userClass/{$dataByUrlVgArr[ CLASS_URL_UINT ]}/{$dataByUrlVgArr[ MODULE_URL_UINT ]}.class.php" );
+    include_once ( "./userClass/{$dataByUrlGArr[ CLASS_URL_UINT ]}/{$dataByUrlGArr[ MODULE_URL_UINT ]}.class.php" );
 
-    $instanceClassVgObj = new $dataByUrlVgArr[ MODULE_URL_UINT ]();
+    $instanceClassGObj = new $dataByUrlGArr[ MODULE_URL_UINT ]();
+    $instanceClassGObj->connect ();
 
-    $parameterVgArr    =  $dataByUrlVgArr;
-    unset ( $parameterVgArr[ 0 ], $parameterVgArr[ 1 ], $parameterVgArr[ 2 ], $parameterVgArr[ CLASS_URL_UINT ], $parameterVgArr[ MODULE_URL_UINT ], $parameterVgArr[ CONTROLLER_URL_UINT ] );
-    $parameterVgArr = array_merge( $parameterVgArr, array() );
 
-    if ( ( !$dataByUrlVgArr[ CONTROLLER_URL_UINT ] ) || ( is_numeric ( $dataByUrlVgArr[ CONTROLLER_URL_UINT ] ) ) )
+    $parameterGArr    =  $dataByUrlGArr;
+    unset ( $parameterGArr[ 0 ], $parameterGArr[ 1 ], $parameterGArr[ 2 ], $parameterGArr[ CLASS_URL_UINT ], $parameterGArr[ MODULE_URL_UINT ], $parameterGArr[ CONTROLLER_URL_UINT ] );
+    $parameterGArr = array_merge( $parameterGArr, array() );
+
+    if ( ( !$dataByUrlGArr[ CONTROLLER_URL_UINT ] ) || ( is_numeric ( $dataByUrlGArr[ CONTROLLER_URL_UINT ] ) ) )
     {
       $vgaRawData = getRawData();
 
       if ( isset ( $vgaRawData[ "id" ] ) )
       {
-        $idByUrlVgArr[] = $vgaRawData[ "id" ];
+        $idByUrlGArr[] = $vgaRawData[ "id" ];
       }
 
       else if ( isset ( $_REQUEST[ "id" ] ) )
       {
-        $idByUrlVgArr[] = $_REQUEST[ "id" ];
+        $idByUrlGArr[] = $_REQUEST[ "id" ];
       }
 
       if ( isset ( $vgaRawData[ "controller" ] ) )
       {
-        $controllerVgStr =  $vgaRawData[ "controller" ];
+        $controllerGStr =  $vgaRawData[ "controller" ];
       }
 
       else if ( isset ( $_REQUEST[ "controller" ] ) )
       {
-        $controllerVgStr =  $_REQUEST[ "controller" ];
+        $controllerGStr =  $_REQUEST[ "controller" ];
       }
 
       else
       {
-        $controllerVgStr = null;
+        $controllerGStr = null;
       }
 
       if ( strtolower ( $_SERVER['REQUEST_METHOD'] ) == "delete" )
       {
-        $actionVgStr = "delete";
+        $actionGStr = "delete";
         $_REQUEST[ 'REQUEST_METHOD' ] = "delete";
-        $dataByUrlVgArr[ CONTROLLER_URL_UINT ] = "Delete";
+        $dataByUrlGArr[ CONTROLLER_URL_UINT ] = "Delete";
 
-        if ( $controllerVgStr == null )
+        if ( $controllerGStr == null )
         {
-          $controllerVgStr = "Delete";
+          $controllerGStr = "Delete";
         }
 
         translateMethod();
@@ -222,86 +222,86 @@
 
       else if ( strtolower ( $_SERVER['REQUEST_METHOD'] ) == "put" )
       {
-        $fileGetInputVgStr = file_get_contents( "php://input" );
-        $_REQUEST = array_merge( $_REQUEST, ( array ) json_decode( $fileGetInputVgStr ) );
-        $actionVgStr = "put";
+        $fileGetInputGStr = file_get_contents( "php://input" );
+        $_REQUEST = array_merge( $_REQUEST, ( array ) json_decode( $fileGetInputGStr ) );
+        $actionGStr = "put";
         $_REQUEST[ 'REQUEST_METHOD' ] = "put";
 
-        if ( $controllerVgStr == null )
+        if ( $controllerGStr == null )
         {
-          $controllerVgStr = "Update";
+          $controllerGStr = "Update";
         }
 
         translateMethod();
 
-        $dataByUrlVgArr[ CONTROLLER_URL_UINT ]    =  $controllerVgStr;
+        $dataByUrlGArr[ CONTROLLER_URL_UINT ]    =  $controllerGStr;
       }
 
       else if ( strtolower ( $_SERVER['REQUEST_METHOD'] ) == "post" ) //create
       {
-        $actionVgStr = "post";
+        $actionGStr = "post";
         $_REQUEST[ 'REQUEST_METHOD' ] = "post";
 
-        if ( $controllerVgStr == null )
+        if ( $controllerGStr == null )
         {
-          $controllerVgStr = "Create";
+          $controllerGStr = "Create";
         }
 
         translateMethod();
 
-        $dataByUrlVgArr[ CONTROLLER_URL_UINT ] = $controllerVgStr;
+        $dataByUrlGArr[ CONTROLLER_URL_UINT ] = $controllerGStr;
       }
 
       else if ( strtolower ( $_SERVER['REQUEST_METHOD'] ) == "get" ) //show
       {
-        $actionVgStr = "get";
+        $actionGStr = "get";
         $_REQUEST[ 'REQUEST_METHOD' ] = "get";
 
-        if ( $controllerVgStr == null )
+        if ( $controllerGStr == null )
         {
-          $controllerVgStr = "Show";
+          $controllerGStr = "Show";
         }
 
         translateMethod();
 
-        $dataByUrlVgArr[ CONTROLLER_URL_UINT ] = $controllerVgStr;
+        $dataByUrlGArr[ CONTROLLER_URL_UINT ] = $controllerGStr;
       }
 
       else
       {
-        $actionVgStr = "";
+        $actionGStr = "";
 
-        if ( $controllerVgStr == null )
+        if ( $controllerGStr == null )
         {
-          $controllerVgStr = "Show";
+          $controllerGStr = "Show";
         }
 
         translateMethod();
 
-        $dataByUrlVgArr[ CONTROLLER_URL_UINT ] = $controllerVgStr;
+        $dataByUrlGArr[ CONTROLLER_URL_UINT ] = $controllerGStr;
       }
     }
 
     else
     {
-      $_REQUEST[ "REQUEST_METHOD" ] = $dataByUrlVgArr[ CONTROLLER_URL_UINT ];
+      $_REQUEST[ "REQUEST_METHOD" ] = $dataByUrlGArr[ CONTROLLER_URL_UINT ];
     }
 
-    if( !method_exists( $instanceClassVgObj, getNamesOfPublicMethods ) ){
+    if( !method_exists( $instanceClassGObj, getNamesOfPublicMethods ) ){
       throw new Exception( "You must create one function named 'getNamesOfPublicMethods' and this function must return one array of string with the name of public functions into you class" );
     }
 
-    if( !in_array( $dataByUrlVgArr[ CONTROLLER_URL_UINT ], $instanceClassVgObj->getNamesOfPublicMethods() ) )
+    if( !in_array( $dataByUrlGArr[ CONTROLLER_URL_UINT ], $instanceClassGObj->getNamesOfPublicMethods() ) )
     {
-      throw new Exception( "The module '{$dataByUrlVgArr[ MODULE_URL_UINT ]}' was registered, but the method '{$dataByUrlVgArr[ CONTROLLER_URL_UINT ]}' was not found in class file." );
+      throw new Exception( "The module '{$dataByUrlGArr[ MODULE_URL_UINT ]}' was registered, but the method '{$dataByUrlGArr[ CONTROLLER_URL_UINT ]}' was not found in class file." );
     }
 
-    $moduleVgStr =  $dataByUrlVgArr[ MODULE_URL_UINT ];
-    $controllerVgStr =  $dataByUrlVgArr[ CONTROLLER_URL_UINT ];
+    $moduleGStr =  $dataByUrlGArr[ MODULE_URL_UINT ];
+    $controllerGStr =  $dataByUrlGArr[ CONTROLLER_URL_UINT ];
 
-    if ( !method_exists ( $instanceClassVgObj, ucfirst( $dataByUrlVgArr[ CONTROLLER_URL_UINT ] ) ) )
+    if ( !method_exists ( $instanceClassGObj, ucfirst( $dataByUrlGArr[ CONTROLLER_URL_UINT ] ) ) )
     {
-      throw new Exception( "The module '{$dataByUrlVgArr[ MODULE_URL_UINT ]}' was registered, but the method '{$dataByUrlVgArr[ CONTROLLER_URL_UINT ]}' was not found in class file." );
+      throw new Exception( "The module '{$dataByUrlGArr[ MODULE_URL_UINT ]}' was registered, but the method '{$dataByUrlGArr[ CONTROLLER_URL_UINT ]}' was not found in class file." );
     }
 
     else
@@ -325,56 +325,65 @@
         }
       }
 
-      /*$vlbSecurity = $instanceClassVgObj->testMethodSecurity ( $_REQUEST, $vgaArguments );
+      /*$vlbSecurity = $instanceClassGObj->testMethodSecurity ( $_REQUEST, $vgaArguments );
 
       if ( !$vlbSecurity )
       {
         throw new Exception ();
       }*/
 
-      $returnVgArr = $instanceClassVgObj->$dataByUrlVgArr[ CONTROLLER_URL_UINT ]( $_REQUEST, $vgaArguments );
+      $returnGArr = $instanceClassGObj->$dataByUrlGArr[ CONTROLLER_URL_UINT ]( $_REQUEST, $vgaArguments );
 
-      if ( $pageOffsetVgUInt < 0 )
+      if ( $pageOffsetGUInt < 0 )
       {
-        $pageOffsetVgUInt = 0;
+        $pageOffsetGUInt = 0;
       }
 
-      $_REQUEST[ "limit" ]  =  $pageLimitVgUInt;
-      $_REQUEST[ "offset" ] =  $pageOffsetVgUInt + $pageLimitVgUInt;
-      $_REQUEST[ "cy" ]     =  $pagePreviousQueryVgStr;
+      $_REQUEST[ "limit" ]  =  $pageLimitGUInt;
+      $_REQUEST[ "offset" ] =  $pageOffsetGUInt + $pageLimitGUInt;
+      $_REQUEST[ "cy" ]     =  $pagePreviousQueryGStr;
 
       $cryptQueryGStr     =  Crypt::encrypt ( $_REQUEST );
-      //$cryptQueryGStr     =  Query::make( $pagePreviousQueryVgStr );
+      //$cryptQueryGStr     =  Query::make( $pagePreviousQueryGStr );
 
-      $_REQUEST[ "offset" ] =  $pageOffsetVgUInt - $pageLimitVgUInt;
+      $_REQUEST[ "offset" ] =  $pageOffsetGUInt - $pageLimitGUInt;
 
-      $returnVgArr   =  array   (
-        "meta"       => array (
-          "limit"       =>  ( INT ) $pageLimitVgUInt,
-          "next"        =>  ( $pageLimitVgUInt + $pageOffsetVgUInt >= $pageTotalVgObj ) ? null : $_SERVER["REDIRECT_URL"] . "?query={$cryptQueryGStr}",
-          "offset"      =>  ( INT ) $pageOffsetVgUInt,
-          "previous"    =>  ( !$pageOffsetVgUInt ) ? null : "http://" . $_SERVER["HTTP_HOST"] . $_SERVER["REDIRECT_URL"] . "?query={$vlsQueryPrevious}",
-          "total_count" =>  ( INT ) $pageTotalVgObj,
-          "success"     =>  true,
-          "action"      =>  $headerActionVgArr,
-          "error"       =>  array (Crypt::decrypt($cryptQueryGStr))
-        ),
-        "objects"    =>  $returnVgArr
-      );
-      $outputVgStr   =  json_encode ( $returnVgArr );
-      $outputVgStr   =  str_replace ( "\\/", "/", $outputVgStr );
+      if( $outputTypeGStr == "json_mobile" )
+      {
+        $returnGArr = array( "meta" => array( "limit" => ( INT )$pageLimitGUInt, "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REDIRECT_URL" ] . "?query={$cryptQueryGStr}", "offset" => ( INT )$pageOffsetGUInt, "previous" => ( !$pageOffsetGUInt ) ? null : "http://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REDIRECT_URL" ] . "?query={$vlsQueryPrevious}", "total_count" => ( INT )$pageTotalGObj, "success" => true, "action" => $headerActionGArr, "error" => array( Crypt::decrypt( $cryptQueryGStr ) ) ), "objects" => $returnGArr );
+        $outputGStr = json_encode( $returnGArr );
+        $outputGStr = str_replace( "\\/", "/", $outputGStr );
 
-      header("Content-Type: application/json");
-      header("Access-Control-Allow-Origin: *");
-      header('Access-Control-Allow-Methods: GET');
+        header( "Content-Type: application/json" );
+        header( "Access-Control-Allow-Origin: *" );
+        header( 'Access-Control-Allow-Methods: GET' );
 
-      header('Expires: Mon, 20 Dec 1998 01:00:00 GMT');
-      header('Last-Modified: '.gmdate('D, d M Y H:i:s').'GMT');
-      header('Cache-Control: no-cache, must-revalidate');
-      header('Pragma: no-cache');
+        header( 'Expires: Mon, 20 Dec 1998 01:00:00 GMT' );
+        header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . 'GMT' );
+        header( 'Cache-Control: no-cache, must-revalidate' );
+        header( 'Pragma: no-cache' );
 
-      header("Content-Length: " . strlen( $outputVgStr ), true);
-      print $outputVgStr;
+        header( "Content-Length: " . strlen( $outputGStr ), true );
+      }
+
+      else if( $outputTypeGStr == "json" )
+      {
+        //$returnGArr = array( "meta" => array( "limit" => ( INT )$pageLimitGUInt, "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REDIRECT_URL" ] . "?query={$cryptQueryGStr}", "offset" => ( INT )$pageOffsetGUInt, "previous" => ( !$pageOffsetGUInt ) ? null : "http://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REDIRECT_URL" ] . "?query={$vlsQueryPrevious}", "total_count" => ( INT )$pageTotalGObj, "success" => true, "action" => $headerActionGArr, "error" => array( Crypt::decrypt( $cryptQueryGStr ) ) ), "objects" => $returnGArr );
+        $outputGStr = json_encode( $returnGArr );
+        $outputGStr = str_replace( "\\/", "/", $outputGStr );
+
+        header( "Content-Type: application/json" );
+        header( "Access-Control-Allow-Origin: *" );
+        header( 'Access-Control-Allow-Methods: GET' );
+
+        header( 'Expires: Mon, 20 Dec 1998 01:00:00 GMT' );
+        header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . 'GMT' );
+        header( 'Cache-Control: no-cache, must-revalidate' );
+        header( 'Pragma: no-cache' );
+
+        header( "Content-Length: " . strlen( $outputGStr ), true );
+      }
+      print $outputGStr;
 
       ob_flush();
       flush();
@@ -382,7 +391,7 @@
     }
   }
 
-  catch ( Exception $eventVaObj )
+  catch ( Exception $eventAObj )
   {
     header("Content-Type: application/json");
   
@@ -391,59 +400,59 @@
     header('Cache-Control: no-cache, must-revalidate');
     header('Pragma: no-cache');
 
-    if ( is_array ( $errorVgArr ) )
+    if ( is_array ( $errorGArr ) )
     {
-      global $serverResponseVgX;
-      array_push ( $errorVgArr, $serverResponseVgX );
-      array_push ( $errorVgArr, $eventVaObj->getMessage() );
+      global $serverResponseGX;
+      array_push ( $errorGArr, $serverResponseGX );
+      array_push ( $errorGArr, $eventAObj->getMessage() );
     }
 
     else
     {
-      global $serverResponseVgX;
+      global $serverResponseGX;
 
-      $errorVgArr = json_decode ( $eventVaObj->getMessage() );
-      if ( !is_array ( $errorVgArr ) )
+      $errorGArr = json_decode ( $eventAObj->getMessage() );
+      if ( !is_array ( $errorGArr ) )
       {
-        $errorVgArr = array ( $eventVaObj->getMessage() );
+        $errorGArr = array ( $eventAObj->getMessage() );
       }
 
-      if ( !is_null ( $serverResponseVgX ) )
+      if ( !is_null ( $serverResponseGX ) )
       {
-        array_push ( $errorVgArr, $serverResponseVgX );
+        array_push ( $errorGArr, $serverResponseGX );
       }
     }
 
-    foreach ( $errorVgArr as $errorKeyVgUInt => $errorValueVgX )
+    foreach ( $errorGArr as $errorKeyGUInt => $errorValueGX )
     {
-      $tmpVgStr = json_decode ( $errorValueVgX, true );
+      $tmpGStr = json_decode ( $errorValueGX, true );
 
-      if ( !is_null ( $tmpVgStr ) )
+      if ( !is_null ( $tmpGStr ) )
       {
-        $errorVgArr[ $errorKeyVgUInt ] = $tmpVgStr;
+        $errorGArr[ $errorKeyGUInt ] = $tmpGStr;
       }
     }
 
-    $messageVlX = $eventVaObj->getMessage();
-    if ( preg_match ( "@message.*?data.*?global@", $messageVlX ) )
+    $messageLX = $eventAObj->getMessage();
+    if ( preg_match ( "@message.*?data.*?global@", $messageLX ) )
     {
-      $errorVgArr[] = json_decode ( $messageVlX, true );
+      $errorGArr[] = json_decode ( $messageLX, true );
     }
 
-    $returnVgArr = array (
+    $returnGArr = array (
       "meta" => array (
-        "limit"       =>  ( INT ) $pageLimitVgUInt,
+        "limit"       =>  ( INT ) $pageLimitGUInt,
         "next"        =>  null,
-        "offset"      =>  ( INT ) $pageOffsetVgUInt,
+        "offset"      =>  ( INT ) $pageOffsetGUInt,
         "previous"    =>  null,
         "total_count" =>  0,
         "success"     =>  false,
-        "error"       =>  $errorVgArr
+        "error"       =>  $errorGArr
       ),
       "objects"    =>  array ()
     );
 
-    print json_encode ( $returnVgArr );
+    print json_encode ( $returnGArr );
   }
 
   function getRawData ()
@@ -460,9 +469,9 @@
 
   function translateMethod ()
   {
-    global $controllerVgStr;
+    global $controllerGStr;
 
-    switch ( ucfirst ( $controllerVgStr ) )
+    switch ( ucfirst ( $controllerGStr ) )
     {
       case "Update": $_REQUEST[ 'REQUEST_METHOD' ] = "put";
         break;

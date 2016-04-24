@@ -38,43 +38,42 @@
     /**
      * @var $connectionCObj Object de conexão da classe MongoClient.
      */
-    public static $connectionCObj;
+    public $connectionCObj;
 
     /**
      * @var $dataBaseCObj Object de conexão ao banco de dados.
      */
-    public static $dataBaseCObj;
+    public $dataBaseCObj;
 
-    public static $collectionCObj;
-    public static $garbageCollectorCObj;
+    public $collectionCObj;
 
     /**
      * osmXmlToMongoDb constructor.
      */
     public function __construct()
     {
-
+      
     }
 
     /**
      * Construtor da classe.
      */
-    public static function connect() {
-      self::$connectionCObj = new MongoClient( $_SERVER[ "mongo_connection_string" ], $_SERVER[ "mongo_options_array" ], $_SERVER[ "mongo_drive_options_array" ] );
+    public function connect() {
+      $this->connectionCObj = new MongoClient( $_SERVER[ "mongo_connection_string" ], $_SERVER[ "mongo_options_array" ], $_SERVER[ "mongo_drive_options_array" ] );
+      $this->setDataBase();
+
     }
 
-    /**
-     * Determina o nome do banco de dados a ser usado.
-     */
-    public static function setDataBase() {
-      self::$dataBaseCObj        = self::$connectionCObj->$_SERVER[ "mongo_database" ];
+    public function setDataBase( $dataBaseAStr = null ) {
+      if( is_null( $dataBaseAStr ) ){
+        $this->dataBaseCObj        = $this->connectionCObj->$_SERVER[ "mongo_database" ];
+      }
+      else{
+        $this->dataBaseCObj        = $this->connectionCObj->$dataBaseAStr;
+      }
     }
 
-    public static function setCollection( $collectionAStr ){
-      self::$collectionCObj = self::$dataBaseCObj->$collectionAStr;
-    }
-
-    public static function setGarbageCollector( $garbageCollectorVaArr ){
-      self::$garbageCollectorCObj = $garbageCollectorVaArr;
+    public function setCollection( $collectionAStr ){
+      $this->collectionCObj = $this->dataBaseCObj->$collectionAStr;
     }
   }
