@@ -51,6 +51,13 @@
             $filterLArr[ "tags.{$filterDataLArr[ 0 ]}.val" ][ '$in' ] = array( $filterDataLArr[ 1 ] );
           }
         }
+
+        $orLArr = array();
+        foreach( $filterLArr as $filterKeyLStr => $filterValueLArr ){
+          $orLArr[] = array( $filterKeyLStr => $filterValueLArr );
+        }
+
+        $filterLArr = array( '$or' => $orLArr );
       }
 
 

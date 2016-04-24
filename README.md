@@ -23,3 +23,10 @@ Após o fim do processo, haverá uma **API** pronta para recuperar informações
 especialmente pensada para aplicações mobile.
 
 Para mais informações, veja o meu site pessoal [**http://www.kemper.com.br**](http://www.kemper.com.br)
+
+Exemplo de como capturar todas as escolas dentro de uma determinada região:
+
+```
+http://www.dominio.com/nodes/nodes/get/tipo_1:valor_1;tipo_2:valor_2/coor. inferior/coor. esquerda/coor. superior/coor. direita
+http://www.dominio.com/nodes/nodes/get/amenity:school/-8.1313/-34.9146/-8.1047/-34.8710
+```
