@@ -161,20 +161,12 @@
     if ( strtolower ( $dataByUrlGArr[ CLASS_URL_UINT ] ) == "open" )
     {
       if( !is_file( "./userClass" . $_SERVER["REQUEST_URI"] ) ){
-        if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "index.php" ) ){
-          readfile( "./userClass" . $_SERVER["REQUEST_URI"] );
-          die();
-        }
-        else if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "/index.php" ) ){
-          readfile( "./userClass" . $_SERVER["REQUEST_URI"] . "/index.php" );
-          die();
-        }
-        else if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "index.htm" ) ){
+        if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "index.htm" ) ){
           readfile( "./userClass" . $_SERVER["REQUEST_URI"] . "index.htm" );
           die();
         }
         else if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "/index.htm" ) ){
-          readfile( "./userClass" . $_SERVER["REQUEST_URI"] . "/index.htm" );
+          header("Location: " . $_SERVER["REQUEST_URI"] . "/");
           die();
         }
         else if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "index.html" ) ){
@@ -182,7 +174,7 @@
           die();
         }
         else if( is_file( "./userClass" . $_SERVER["REQUEST_URI"] . "/index.html" ) ){
-          readfile( "./userClass" . $_SERVER["REQUEST_URI"] . "/index.html" );
+          header("Location: " . $_SERVER["REQUEST_URI"] . "/");
           die();
         }
       }
