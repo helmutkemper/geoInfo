@@ -36,6 +36,12 @@
   include_once( "./class/mongodb/normalize.class.php" );
   include_once( "./class/crypt/crypt.class.php" );
   include_once( "./class/util/util.class.php" );
+  include_once( "./class/util/utilGeo.class.php" );
+
+  include_once "./class/import/osmXmlToMongoDbSupport.class.php";
+  include_once "./class/import/osmXml.class.php";
+
+  include_once "./class/util/size.class.php";
 
   //->    use Aws\S3\S3Client;
 
@@ -66,6 +72,8 @@
   global $pageTotalGObj;
   global $pageLimitGUInt;
   global $pageOffsetGUInt;
+  global $pageNextLinkGStr;
+  global $pagePreviousLinkGStr;
   global $orderByGStr;
   global $sortGStr;
   global $pageNextGUInt;
@@ -196,12 +204,13 @@
     include_once ( "./userClass/{$dataByUrlGArr[ CLASS_URL_UINT ]}/{$dataByUrlGArr[ MODULE_URL_UINT ]}.class.php" );
 
     $instanceClassGObj = new $dataByUrlGArr[ MODULE_URL_UINT ]();
-    $instanceClassGObj->connect ();
+    //$instanceClassGObj->connect ();
 
 
     $parameterGArr    =  $dataByUrlGArr;
     unset ( $parameterGArr[ 0 ], $parameterGArr[ 1 ], $parameterGArr[ 2 ], $parameterGArr[ CLASS_URL_UINT ], $parameterGArr[ MODULE_URL_UINT ], $parameterGArr[ CONTROLLER_URL_UINT ] );
     $parameterGArr = array_merge( $parameterGArr, array() );
+    $parameterGArr[ ( count( $parameterGArr ) - 1 ) ] = preg_replace( "/(.*?)(\?[a-zA-Z_][a-zA-Z0-9_]*=.*)/si", "$1", $parameterGArr[ ( count( $parameterGArr ) - 1 ) ] );
 
     if ( ( !$dataByUrlGArr[ CONTROLLER_URL_UINT ] ) || ( is_numeric ( $dataByUrlGArr[ CONTROLLER_URL_UINT ] ) ) )
     {
@@ -313,7 +322,7 @@
       $_REQUEST[ "REQUEST_METHOD" ] = $dataByUrlGArr[ CONTROLLER_URL_UINT ];
     }
 
-    if( !method_exists( $instanceClassGObj, getNamesOfPublicMethods ) ){
+    if( !method_exists( $instanceClassGObj, "getNamesOfPublicMethods" ) ){
       throw new Exception( "You must create one function named 'getNamesOfPublicMethods' and this function must return one array of string with the name of public functions into you class" );
     }
 
@@ -369,13 +378,25 @@
 
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "/(.*?)\?.*/", "$1", $_SERVER[ "REQUEST_URI" ] );
 
+      if( is_null( $pageNextLinkGStr ) ){
+        if( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ){
+          $pageNextLinkGStr = null;
+        }
+        else
+        {
+          $pageNextLinkGStr = $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?query={$cryptQueryGStr}";
+        }
+      }
+
+      //( !$pageOffsetGUInt ) ? null : $_REQUEST[ "REQUEST_URI" ] . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?query={$vlsQueryPrevious}"
+
       if( $outputTypeGStr == "json_mobile" )
       {
         $returnGArr = array( "meta" => array(
           "limit" => ( INT )$pageLimitGUInt,
-          "next" => ( $pageLimitGUInt + $pageOffsetGUInt >= $pageTotalGObj ) ? null : $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?query={$cryptQueryGStr}",
+          "next" => $pageNextLinkGStr,
           "offset" => ( INT )$pageOffsetGUInt,
-          "previous" => ( !$pageOffsetGUInt ) ? null : $_REQUEST[ "REQUEST_URI" ] . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?query={$vlsQueryPrevious}",
+          "previous" => $pagePreviousLinkGStr,
           "total_count" => ( INT )$pageTotalGObj,
           "success" => true,
           "action" => $headerActionGArr,

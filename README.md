@@ -30,3 +30,8 @@ Exemplo de como capturar todas as escolas dentro de uma determinada região:
 http://www.dominio.com/nodes/nodes/get/tipo_1:valor_1;tipo_2:valor_2/coor. inferior/coor. esquerda/coor. superior/coor. direita
 http://www.dominio.com/nodes/nodes/get/amenity:school/-8.1313/-34.9146/-8.1047/-34.8710
 ```
+
+Após instalar o arquivo, acesse a página de importação em:
+```
+http://www.dominio.com/open/html/import/index.html
+```

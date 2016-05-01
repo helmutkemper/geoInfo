@@ -1,0 +1,162 @@
+<html>
+<head>
+  <style>
+    html {
+      font: 14px sans-serif;
+      margin: 0px auto;
+      width: 600px;
+    }
+    #container {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      align-content: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    table {
+      margin: 0 auto; /* or margin: 0 auto 0 auto */
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600,800,900" rel="stylesheet" type="text/css">
+  <script language="JavaScript" src="../../js/jquery-2.2.0.min.js"></script>
+  <script language="JavaScript" src="../../js/progressbar.min.js" charset="utf-8"></script>
+  <script>
+
+    var bar, loadingFunction;
+    var dataToSend = {};
+    var successDataGBoo = true;
+    var checkTimeOut;
+
+    $( document ).ready( function(){
+      bar = new ProgressBar.Circle(container, {
+        color: '#aaa',
+        // This has to be the same size as the maximum width to
+        // prevent clipping
+        strokeWidth: 4,
+        trailWidth: 1,
+        easing: 'easeInOut',
+        duration: 1400,
+        text: {
+          autoStyleContainer: false
+        },
+        from: { color: '#aaa', width: 1 },
+        to: { color: '#333', width: 4 },
+        // Set default step function for all animate calls
+        step: function(state, circle) {
+          circle.path.setAttribute('stroke', state.color);
+          circle.path.setAttribute('stroke-width', state.width);
+
+          var value = Math.round(circle.value() * 100);
+          if (value === 0) {
+            circle.setText('');
+          } else {
+            circle.setText(value);
+          }
+
+        }
+      });
+      bar.text.style.fontFamily = '"Raleway", Helvetica, sans-serif';
+      bar.text.style.fontSize = '2rem';
+
+      bar.animate(0.0);
+
+      loadingFunction = function() {
+        $.getJSON( "../../../import/process/processData/", dataToSend )
+          .done( function( jsonData ) {
+            bar.animate( jsonData.meta.offset / jsonData.meta.total_count );
+
+            $( '#total').html( jsonData.meta.total_count );
+            $( '#atual').html( jsonData.meta.offset );
+            $( '#tmpNodes').html( jsonData.objects.tmpNodes );
+            $( '#tmpNodesTags').html( jsonData.objects.tmpNodesTags );
+            $( '#tmpSetupMap').html( jsonData.objects.tmpSetupMap );
+            $( '#tmpWayNode').html( jsonData.objects.tmpWayNode );
+            $( '#tmpWays').html( jsonData.objects.tmpWays );
+            $( '#tmpWaysTags').html( jsonData.objects.tmpWaysTags );
+            dataToSend.block = jsonData.objects.block;
+            dataToSend.compressIndex = jsonData.objects.compressIndex;
+            dataToSend.osmXmlToDataBaseCompressIdFUInt = jsonData.objects.osmXmlToDataBaseCompressIdFUInt;
+
+            successDataGBoo = true;
+          })
+          .fail(function( jsonData ) {
+            $( '#total').html( 'fail!' );
+            $( '#atual').html( 'fail!' );
+            $( '#tmpNodes').html( 'fail!' );
+            $( '#tmpNodesTags').html( 'fail!' );
+            $( '#tmpSetupMap').html( 'fail!' );
+            $( '#tmpWayNode').html( 'fail!' );
+            $( '#tmpWays').html( 'fail!' );
+            $( '#tmpWaysTags').html( 'fail!' );
+
+            clearTimeout( checkTimeOut );
+          });
+      }
+
+      checkTimeOut = setInterval(
+        function(){
+          if( successDataGBoo == true ){
+            successDataGBoo = false;
+            loadingFunction();
+          }
+        },
+        500
+      );
+    });
+
+  </script>
+</head>
+<body>
+  <div id="container"></div>
+  <div>&nbsp;</div>
+  <div>
+    <table border="0" width="200px">
+      <tr>
+        <td style="width: 30%;">total</td>
+        <td id="total" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">atual</td>
+        <td id="atual" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">tmpNodes</td>
+        <td id="tmpNodes" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">tmpNodesTags</td>
+        <td id="tmpNodesTags" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">tmpSetupMap</td>
+        <td id="tmpSetupMap" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">tmpWayNode</td>
+        <td id="tmpWayNode" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">tmpWays</td>
+        <td id="tmpWays" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">tmpWaysTags</td>
+        <td id="tmpWaysTags" style="width: 70%; text-align: right">...</td>
+      </tr>
+    </table>
+  </div>
+  <div>&nbsp;</div>
+  <div>&nbsp;</div>
+  <div>&nbsp;</div>
+  <div>Português:</div>
+  <div>&nbsp;</div>
+  <div>Parabéns, o servidor foi instalado e agora está importando os dados mais recentes do <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMaps</a></div>
+  <div>&nbsp;</div>
+  <div>Esta é a versão 0.1 e você necessita deixar o navegador aberto enquanto o arquivo é tratado. Caso você tenha algum problema no processo de importação, nesta versão, hainda há o risco do dado duplicar, por isto, é bom apagar o banco e começar de novo.</div>
+  <div>&nbsp;</div>
+  <div>Caso você tenha problemas de <strong>timeout</strong>, abra o arquivo <strong>'userClass/import/process.class.php'</strong>, procure pela linha <strong>'$this->init( size::MByte( 5 ) );'</strong> e diminua o valor do arquivo lido.</div>
+  <div>&nbsp;</div>
+  <div>Para mais informações, por favor, consulte o meu blog, <a href="http://www.kemper.com.br" target="_blank">http://www.kemper.com.br</a></div>
+</body>
+</html>
