@@ -74,11 +74,14 @@
             $( '#tmpWayNode').html( jsonData.objects.tmpWayNode );
             $( '#tmpWays').html( jsonData.objects.tmpWays );
             $( '#tmpWaysTags').html( jsonData.objects.tmpWaysTags );
-            dataToSend.block = jsonData.objects.block;
-            dataToSend.compressIndex = jsonData.objects.compressIndex;
-            dataToSend.osmXmlToDataBaseCompressIdFUInt = jsonData.objects.osmXmlToDataBaseCompressIdFUInt;
 
-            successDataGBoo = true;
+            if( jsonData.meta.offset != jsonData.meta.total_count ) {
+              dataToSend.block = jsonData.objects.block;
+              dataToSend.compressIndex = jsonData.objects.compressIndex;
+              dataToSend.osmXmlToDataBaseCompressIdFUInt = jsonData.objects.osmXmlToDataBaseCompressIdFUInt;
+
+              successDataGBoo = true;
+            }
           })
           .fail(function( jsonData ) {
             $( '#total').html( 'fail!' );
@@ -90,6 +93,7 @@
             $( '#tmpWays').html( 'fail!' );
             $( '#tmpWaysTags').html( 'fail!' );
 
+            bar.animate(0.0);
             clearTimeout( checkTimeOut );
           });
       }
