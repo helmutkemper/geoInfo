@@ -1,7 +1,7 @@
 geoInfo
 ---------
 
-![geoInfo logo](./logo_700.png)
+![geoInfo logo](./logo_1000.png)
 
 Este projeto tem a finalidade de criar um servidor **PHP/MongoDB** completo, e de forma
 automática, com informações geográficas coletadas do
