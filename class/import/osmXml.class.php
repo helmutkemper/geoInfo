@@ -2,22 +2,28 @@
 
   class osmXml extends osmXmlToMongoDbSupport
   {
-    private $microTimeCObj;
+    protected $microTimeCObj;
 
     /**
      * @var string nome do arquivo xml a ser processado.
      */
-    private $osmFileNameCStr = "";
+    protected $osmFileNameCStr = "";
 
     /**
      * @var string arquiva as sobras do xml que não foram processadas na operação anterior.
      */
-    private $flagLastTagProcessedIsOpenCStr = "";
+    protected $flagLastTagProcessedIsOpenCStr = "";
 
     /**
      * @var int positivo com o tabanho em bytes do arquivo xml a ser processado.
      */
-    private $parserXmlBytesPerPageCUInt;
+    protected $parserXmlBytesPerPageCUInt;
+
+    protected $makeFileToExportIndexCUInt;
+    protected $previousFileTextCStr;
+    protected $compressDataCStr;
+    protected $compressIndexCUInt;
+    protected $fileLastByteReadCUInt;
 
     public function __construct()
     {
@@ -29,21 +35,6 @@
       $this->microTimeCObj = microtime( true );
 
       $this->parserXmlBytesPerPageCUInt = $parserXmlBytesPerPageAUInt;
-
-      if ( !isset( $_REQUEST[ "osmXmlToDataBaseCompressIdFUInt" ] ) )
-      {
-        $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] = "";
-        $_SESSION[ "osmXmlToDataBase" ][ "compressIndex" ] = 0;
-        $_SESSION[ "osmXmlToDataBase" ][ "compressData" ] = "";
-        $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] = 0;
-
-        $this->makeFileToExportIndexCUInt = 0;
-      }
-      else
-      {
-        $_SESSION[ "osmXmlToDataBase" ][ "compressIndex" ] = $_REQUEST[ "compressIndex" ];
-        $this->makeFileToExportIndexCUInt = $_REQUEST[ "osmXmlToDataBaseCompressIdFUInt" ];
-      }
     }
 
     public function processOsmFile ( $osmFileNameAStr )
@@ -59,39 +50,39 @@
       {
         if ( !is_file ( $this->osmFileNameCStr ) )
         {
-          die ( "File not found / Arquivo não encontrado: {$this->osmFileNameCStr}." );
+          throw new Exception ( "File not found / Arquivo não encontrado: {$this->osmFileNameCStr}." );
         }
         if ( !is_readable( $this->osmFileNameCStr ) )
         {
-          die ( "I found, but I can`t read file / O arquivo existe, porém, eu não posso ler o arquivo: {$this->osmFileNameCStr}." );
+          throw new Exception ( "I found, but I can`t read file / O arquivo existe, porém, eu não posso ler o arquivo: {$this->osmFileNameCStr}." );
         }
       }
 
-      fseek( $resourceOsmFileLObj, $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] );
+      fseek( $resourceOsmFileLObj, $this->fileLastByteReadCUInt );
 
       $osmXmlFileDataLStr    = fread( $resourceOsmFileLObj, $this->parserXmlBytesPerPageCUInt );
 
-      $osmXmlDataToParser    = "";
-      $osmXmlTmpDataToParser = "";
+      $osmXmlDataToParserLStr    = "";
+      $osmXmlTmpDataToParserLStr = "";
 
       if ( $osmXmlFileDataLStr != false )
       {
-        $osmXmlFileDataLStr = $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] . $osmXmlFileDataLStr;
+        $osmXmlFileDataLStr = $this->previousFileTextCStr . $osmXmlFileDataLStr;
 
-        $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] = ftell( $resourceOsmFileLObj );
+        $this->fileLastByteReadCUInt = ftell( $resourceOsmFileLObj );
 
         preg_match_all( "%^(.*?)(<.*>)(.*)$%si", $osmXmlFileDataLStr, $matchesLArr );
 
         $flagLastTagProcessedIsOpenLBol = false;
         if ( preg_match_all( "%^(.*?)(<.*>)(.*)$%si", $osmXmlFileDataLStr, $matchesLArr ) == 0 )
         {
-          $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] = $osmXmlFileDataLStr;
+          $this->previousFileTextCStr = $osmXmlFileDataLStr;
         }
         else
         {
           if ( preg_match_all( "%(<.*?>)%si", $matchesLArr[ 2 ][ 0 ], $matchesTagsLArr ) == 0 )
           {
-            $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] = $matchesLArr[ 2 ][ 0 ] . $matchesLArr[ 3 ][ 0 ];
+            $this->previousFileTextCStr = $matchesLArr[ 2 ][ 0 ] . $matchesLArr[ 3 ][ 0 ];
           }
           else
           {
@@ -102,7 +93,7 @@
                */
               if ( substr( $matchesTagsValueLStr, 0, strlen( "<?xml" ) ) == "<?xml" )
               {
-                //$osmXmlDataToParser .= $matchesTagsValueLStr . "\r\n";
+                //$osmXmlDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
               }
 
               /**
@@ -110,8 +101,8 @@
                */
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "<osm" ) ) == "<osm" )
               {
-                //$osmXmlDataToParser .= $matchesTagsValueLStr;
-                //$osmXmlDataToParser .= "</osm>" . "\r\n";
+                //$osmXmlDataToParserLStr .= $matchesTagsValueLStr;
+                //$osmXmlDataToParserLStr .= "</osm>" . "\r\n";
               }
 
               /**
@@ -119,7 +110,7 @@
                */
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "<bounds" ) ) == "<bounds" )
               {
-                $osmXmlDataToParser .= $matchesTagsValueLStr . "\r\n";
+                $osmXmlDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
               }
 
               /**
@@ -127,7 +118,7 @@
                */
               else if ( ( substr( $matchesTagsValueLStr, 0, strlen( "<node" ) ) == "<node" ) && ( substr( $matchesTagsValueLStr, -2, strlen( "/>" ) ) == "/>" ) )
               {
-                $osmXmlDataToParser .= $matchesTagsValueLStr . "\r\n";
+                $osmXmlDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
               }
 
               /**
@@ -138,12 +129,12 @@
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "<node" ) ) == "<node" )
               {
                 $flagLastTagProcessedIsOpenLBol = true;
-                $osmXmlTmpDataToParser .= $matchesTagsValueLStr . "\r\n";
+                $osmXmlTmpDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
               }
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "</node>" ) ) == "</node>" )
               {
-                $osmXmlDataToParser    .= $osmXmlTmpDataToParser . $matchesTagsValueLStr . "\r\n";
-                $osmXmlTmpDataToParser  = "";
+                $osmXmlDataToParserLStr    .= $osmXmlTmpDataToParserLStr . $matchesTagsValueLStr . "\r\n";
+                $osmXmlTmpDataToParserLStr  = "";
               }
 
               /**
@@ -153,11 +144,11 @@
               {
                 if( $flagLastTagProcessedIsOpenLBol == true )
                 {
-                  $osmXmlTmpDataToParser .= $matchesTagsValueLStr . "\r\n";
+                  $osmXmlTmpDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
                 }
                 else
                 {
-                  $osmXmlDataToParser .= $matchesTagsValueLStr . "\r\n";
+                  $osmXmlDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
                 }
               }
 
@@ -169,13 +160,13 @@
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "<way" ) ) == "<way" )
               {
                 $flagLastTagProcessedIsOpenLBol = true;
-                $osmXmlTmpDataToParser .= $matchesTagsValueLStr;
+                $osmXmlTmpDataToParserLStr .= $matchesTagsValueLStr;
               }
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "</way>" ) ) == "</way>" )
               {
                 $flagLastTagProcessedIsOpenLBol = false;
-                $osmXmlDataToParser    .= $osmXmlTmpDataToParser . $matchesTagsValueLStr . "\r\n";
-                $osmXmlTmpDataToParser  = "";
+                $osmXmlDataToParserLStr    .= $osmXmlTmpDataToParserLStr . $matchesTagsValueLStr . "\r\n";
+                $osmXmlTmpDataToParserLStr  = "";
               }
 
               /**
@@ -185,11 +176,11 @@
               {
                 if( $flagLastTagProcessedIsOpenLBol == true )
                 {
-                  $osmXmlTmpDataToParser .= $matchesTagsValueLStr;
+                  $osmXmlTmpDataToParserLStr .= $matchesTagsValueLStr;
                 }
                 else
                 {
-                  $osmXmlDataToParser .= $matchesTagsValueLStr . "\r\n";
+                  $osmXmlDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
                 }
               }
 
@@ -201,13 +192,13 @@
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "<relation" ) ) == "<relation" )
               {
                 $flagLastTagProcessedIsOpenLBol = true;
-                $osmXmlTmpDataToParser .= $matchesTagsValueLStr;
+                $osmXmlTmpDataToParserLStr .= $matchesTagsValueLStr;
               }
               else if ( substr( $matchesTagsValueLStr, 0, strlen( "</relation>" ) ) == "</relation>" )
               {
                 $flagLastTagProcessedIsOpenLBol = false;
-                $osmXmlDataToParser    .= $osmXmlTmpDataToParser . $matchesTagsValueLStr . "\r\n";
-                $osmXmlTmpDataToParser  = "";
+                $osmXmlDataToParserLStr    .= $osmXmlTmpDataToParserLStr . $matchesTagsValueLStr . "\r\n";
+                $osmXmlTmpDataToParserLStr  = "";
               }
 
               /**
@@ -217,28 +208,29 @@
               {
                 if( $flagLastTagProcessedIsOpenLBol == true )
                 {
-                  $osmXmlTmpDataToParser .= $matchesTagsValueLStr;
+                  $osmXmlTmpDataToParserLStr .= $matchesTagsValueLStr;
                 }
                 else
                 {
-                  $osmXmlDataToParser .= $matchesTagsValueLStr . "\r\n";
+                  $osmXmlDataToParserLStr .= $matchesTagsValueLStr . "\r\n";
                 }
               }
             }
 
-            $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] = $osmXmlTmpDataToParser . $matchesLArr[ 3 ][ 0 ];
+            $this->previousFileTextCStr = $osmXmlTmpDataToParserLStr . $matchesLArr[ 3 ][ 0 ];
           }
         }
 
-        $osmXmlDataToParser = "<?xml version='1.0' encoding='UTF-8'?><bitOfData>" . $osmXmlDataToParser . "<bitOfData>";
+        $osmXmlDataToParserLStr = "<?xml version='1.0' encoding='UTF-8'?><bitOfData>" . $osmXmlDataToParserLStr . "<bitOfData>";
 
-        xml_parse( $parserXmlLObj, $osmXmlDataToParser, feof( $resourceOsmFileLObj ) );
+        xml_parse( $parserXmlLObj, $osmXmlDataToParserLStr, feof( $resourceOsmFileLObj ) );
 
         return $this->runNextPage();
       }
       else
       {
-        die ( "End of process ok / Concluído com sucesso" );
+        $this->setProcessEnd();
+        return;
       }
     }
 
@@ -250,7 +242,7 @@
         case "createTables":
           if( $this->makeFileToExportIndexCUInt == 0 )
           {
-            $_SESSION["osmXmlToDataBase"]["compressData"] .= $textAStr;
+            $this->compressDataCStr .= $textAStr;
           }
           break;
 
@@ -259,21 +251,13 @@
         case "createWay":
         case "createWayNode":
         case "createWayTag":
-          $_SESSION["osmXmlToDataBase"]["compressData"] .= $textAStr;
+        $this->compressDataCStr .= $textAStr;
           break;
       }
     }
 
     private function runNextPage()
     {
-      global $pageLimitGUInt;
-      global $pageOffsetGUInt;
-      global $pageTotalGObj;
-      global $pageNextLinkGStr;
-
-      $microTimeLObj = microtime( true );
-      $timeTotal = ( $microTimeLObj - $this->microtimeCObj ) / 1000000;
-
       $this->makeFileToExportIndexCUInt += 1;
 
       $collectionLObj = $this->collectionTmpNodesCObj->find();
@@ -303,17 +287,9 @@
       $collectionLObj = $this->collectionWaysCObj->find();
       $waysCountLUInt = $collectionLObj->count();
 
-      //header("refresh:1;url=./main_import.php?osmXmlToDataBaseCompressIdFUInt={$this->makeFileToExportIndexCUInt}&compressIndex={$_SESSION[ "osmXmlToDataBase" ][ "compressIndex" ]}");
-
-      $pageLimitGUInt = 1;
-      $pageOffsetGUInt = $this->makeFileToExportIndexCUInt;
-      $pageTotalGObj = ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt );
-      $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
-      $pageNextLinkGStr = $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?osmXmlToDataBaseCompressIdFUInt={$this->makeFileToExportIndexCUInt}&compressIndex={$_SESSION[ "osmXmlToDataBase" ][ "compressIndex" ]}";
-
       return array(
         "osmXmlToDataBaseCompressIdFUInt" => $this->makeFileToExportIndexCUInt,
-        "compressIndex" => $_SESSION[ "osmXmlToDataBase" ][ "compressIndex" ],
+        "compressIndex" => $this->compressIndexCUInt,
         "block" => $this->makeFileToExportIndexCUInt,
         "tmpNodes" => $tmpNodesCountLUInt,
         "tmpNodesTags" => $tmpNodesTagsCountLUInt,
@@ -326,9 +302,6 @@
         "ways" => $waysCountLUInt,
         "total" => ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt )
       );
-      print("./index.php?osmXmlToDataBaseCompressIdFUInt={$this->makeFileToExportIndexCUInt}&compressIndex={$_SESSION[ "osmXmlToDataBase" ][ "compressIndex" ]}");
-
-      die( "Time total: {$timeTotal}<br>\r\nBlock read / Bloco lido: {$this->makeFileToExportIndexCUInt}" );
     }
 
     private function osmXmlOnOpenTag( $parserXmlAObj, $nodeNameAStr, $nodeAttributesAArr )

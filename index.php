@@ -8,6 +8,14 @@
   define( "MODULE_URL_UINT", 4 );
   define( "CONTROLLER_URL_UINT", 5 );
 
+  define ( "TIMEZONE_DEFAULT", "Europe/London" );
+
+  /*
+   * $_SERVER[ "GEOINFO_TIMEZONE_DEFAULT" ] determina a time_zone. "Europe/London" facilita o cálculo de tempo.
+   * $_SERVER[ "GEOINFO_PAGINATION_OFFSET" ] limite da itens por página. 20 por padrão.
+   *
+   */
+
   if ( is_file ( "./doNotUpload/server.php" ) )
   {
     include_once "./doNotUpload/server.php";
@@ -28,8 +36,14 @@
     $_SERVER[ "REQUEST_SCHEME" ] =  "http";
   }
 
-  define ( "timezone", "Europe/London" );
-  date_default_timezone_set ( $_SERVER[ "timezone" ] );
+  if( isset( $_SERVER[ "GEOINFO_TIMEZONE_DEFAULT" ] ) ){
+    date_default_timezone_set ( $_SERVER[ "TIMEZONE_DEFAULT" ] );
+  }
+  else{
+    date_default_timezone_set ( TIMEZONE_DEFAULT );
+  }
+
+
 
 
   include_once( "./class/mongodb/db.class.php" );
@@ -52,21 +66,25 @@
 
   $outputTypeGStr = "json_mobile";
 
-  $pageTotalGObj                =  0;
-  $pageLimitGUInt                =  null;
-  $pageOffsetGUInt               =  null;
-  $orderByGStr                  =  null;
-  $sortGStr                     =  null;
-  $pageNextGUInt                 =  null;
-  $pagePreviousGUInt             =  null;
-  $pageNextGStr                 =  null;
-  $actionGStr                   =  null;
-  $idByUrlGArr                  =  array ();
-  $moduleGStr                   =  null;
-  $controllerGStr               =  null;
-  $headerActionGArr             =  array ();
-  $sessionGArr          =  array ();
-  $pagePreviousQueryGStr = null;
+  $pageTotalGObj         =  0;
+  $pageLimitGUInt        =  null;
+  $pageOffsetGUInt       =  null;
+  $orderByGStr           =  null;
+  $sortGStr              =  null;
+  $pageNextGUInt         =  null;
+  $pagePreviousGUInt     =  null;
+  $pageNextGStr          =  null;
+  $actionGStr            =  null;
+  $idByUrlGArr           =  array ();
+  $moduleGStr            =  null;
+  $controllerGStr        =  null;
+  $headerActionGArr      =  array ();
+  $sessionGArr           =  array ();
+  $pagePreviousQueryGStr =  null;
+  $debugEnableGBoo       =  false;
+  $debugDataGArr         =  array();
+  $errorGArr             =  array();
+  $processEndGBoo      =  false;
 
   global $outputTypeGStr;
   global $pageTotalGObj;
@@ -86,6 +104,10 @@
   global $headerActionGArr;
   global $sessionGArr;
   global $pagePreviousQueryGStr;
+  global $debugEnableGBoo;
+  global $debugDataGArr;
+  global $errorGArr;
+  global $processEndGBoo;
 
   try
   {
@@ -103,7 +125,7 @@
 
     if ( !isset ( $_REQUEST[ "limit" ] ) )
     {
-      $pageLimitGUInt    =  $_SERVER[ "paginationOffset" ];
+      $pageLimitGUInt    =  $_SERVER[ "GEOINFO_PAGINATION_OFFSET" ];
     }
     else
     {
@@ -117,7 +139,7 @@
     }
     else
     {
-      $pageOffsetGUInt   =  $_SERVER[ "offset" ];
+      $pageOffsetGUInt   =  $_REQUEST[ "offset" ];
       unset ( $_REQUEST[ "offset" ] );
     }
 
@@ -126,7 +148,7 @@
       $pagePreviousQueryGStr =  $_REQUEST[ "cy" ];
     }
 
-    // Divide as vari�veis passadas por URL
+    // Divide as variáveis passadas por URL
     $dataByUrlGArr        =  explode ( "/", @$_SERVER[ "REDIRECT_URL" ] );
 
     foreach ( $dataByUrlGArr as $dataUrlGStr )
@@ -204,8 +226,6 @@
     include_once ( "./userClass/{$dataByUrlGArr[ CLASS_URL_UINT ]}/{$dataByUrlGArr[ MODULE_URL_UINT ]}.class.php" );
 
     $instanceClassGObj = new $dataByUrlGArr[ MODULE_URL_UINT ]();
-    //$instanceClassGObj->connect ();
-
 
     $parameterGArr    =  $dataByUrlGArr;
     unset ( $parameterGArr[ 0 ], $parameterGArr[ 1 ], $parameterGArr[ 2 ], $parameterGArr[ CLASS_URL_UINT ], $parameterGArr[ MODULE_URL_UINT ], $parameterGArr[ CONTROLLER_URL_UINT ] );
@@ -392,17 +412,25 @@
 
       if( $outputTypeGStr == "json_mobile" )
       {
-        $returnGArr = array( "meta" => array(
-          "limit" => ( INT )$pageLimitGUInt,
-          "next" => $pageNextLinkGStr,
-          "offset" => ( INT )$pageOffsetGUInt,
-          "previous" => $pagePreviousLinkGStr,
-          "total_count" => ( INT )$pageTotalGObj,
-          "success" => true,
-          "action" => $headerActionGArr,
-          "error" => array( Crypt::decrypt( $cryptQueryGStr ) ) ),
+        $returnGArr = array(
+          "meta" => array(
+            "limit" => ( INT )$pageLimitGUInt,
+            "next" => $pageNextLinkGStr,
+            "offset" => ( INT )$pageOffsetGUInt,
+            "previous" => $pagePreviousLinkGStr,
+            "total_count" => ( INT )$pageTotalGObj,
+            "success" => true,
+            "action" => $headerActionGArr,
+            "error" => array( Crypt::decrypt( $cryptQueryGStr ) ),
+            "processes_end" => $processEndGBoo
+          ),
           "objects" => $returnGArr
         );
+
+        if( $debugEnableGBoo == true ){
+          $returnGArr[ "meta" ][ "debug" ] = $debugDataGArr;
+        }
+
         $outputGStr = json_encode( $returnGArr );
         $outputGStr = str_replace( "\\/", "/", $outputGStr );
 
@@ -473,24 +501,15 @@
 
     if ( is_array ( $errorGArr ) )
     {
-      global $serverResponseGX;
-      array_push ( $errorGArr, $serverResponseGX );
       array_push ( $errorGArr, $eventAObj->getMessage() );
     }
 
     else
     {
-      global $serverResponseGX;
-
       $errorGArr = json_decode ( $eventAObj->getMessage() );
       if ( !is_array ( $errorGArr ) )
       {
         $errorGArr = array ( $eventAObj->getMessage() );
-      }
-
-      if ( !is_null ( $serverResponseGX ) )
-      {
-        array_push ( $errorGArr, $serverResponseGX );
       }
     }
 
@@ -511,14 +530,16 @@
     }
 
     $returnGArr = array (
-      "meta" => array (
-        "limit"       =>  ( INT ) $pageLimitGUInt,
-        "next"        =>  null,
-        "offset"      =>  ( INT ) $pageOffsetGUInt,
-        "previous"    =>  null,
-        "total_count" =>  0,
-        "success"     =>  false,
-        "error"       =>  $errorGArr
+      "meta"            => array (
+        "limit"         =>  ( INT ) $pageLimitGUInt,
+        "next"          =>  null,
+        "offset"        =>  ( INT ) $pageOffsetGUInt,
+        "previous"      =>  null,
+        "total_count"   =>  0,
+        "success"       =>  false,
+        "error"         =>  $errorGArr,
+        "action"        => $headerActionGArr,
+        "processes_end" => $processEndGBoo
       ),
       "objects"    =>  array ()
     );

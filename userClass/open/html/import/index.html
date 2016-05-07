@@ -27,6 +27,8 @@
     var dataToSend = {};
     var successDataGBoo = true;
     var checkTimeOut;
+    var processGStr = 'import';
+    var urlGStr = "../../../import/process/importData/";
 
     $( document ).ready( function(){
       bar = new ProgressBar.Circle(container, {
@@ -36,7 +38,7 @@
         strokeWidth: 4,
         trailWidth: 1,
         easing: 'easeInOut',
-        duration: 1400,
+        duration: 100,
         text: {
           autoStyleContainer: false
         },
@@ -62,10 +64,20 @@
       bar.animate(0.0);
 
       loadingFunction = function() {
-        $.getJSON( "../../../import/process/processData/", dataToSend )
+        $.getJSON( urlGStr, dataToSend )
           .done( function( jsonData ) {
+            if( !jsonData.meta.success ){
+              $( '#status').html( jsonData.meta.error.join( "<br>" ) );
+              return;
+            }
+
             bar.animate( jsonData.meta.offset / jsonData.meta.total_count );
 
+            if( ( jsonData.meta.processes_end ) && ( processGStr == 'import' ) ){
+
+            }
+
+            $( '#process').html( processGStr );
             $( '#total').html( jsonData.meta.total_count );
             $( '#atual').html( jsonData.meta.offset );
             $( '#tmpNodes').html( jsonData.objects.tmpNodes );
@@ -75,23 +87,18 @@
             $( '#tmpWays').html( jsonData.objects.tmpWays );
             $( '#tmpWaysTags').html( jsonData.objects.tmpWaysTags );
 
-            if( jsonData.meta.offset != jsonData.meta.total_count ) {
-              dataToSend.block = jsonData.objects.block;
-              dataToSend.compressIndex = jsonData.objects.compressIndex;
-              dataToSend.osmXmlToDataBaseCompressIdFUInt = jsonData.objects.osmXmlToDataBaseCompressIdFUInt;
+            if( processGStr == 'import' ){
+              if( jsonData.meta.offset != jsonData.meta.total_count ) {
+                dataToSend.block = jsonData.objects.block;
+                dataToSend.compressIndex = jsonData.objects.compressIndex;
+                dataToSend.osmXmlToDataBaseCompressIdFUInt = jsonData.objects.osmXmlToDataBaseCompressIdFUInt;
 
-              successDataGBoo = true;
+                successDataGBoo = true;
+              }
             }
           })
           .fail(function( jsonData ) {
-            $( '#total').html( 'fail!' );
-            $( '#atual').html( 'fail!' );
-            $( '#tmpNodes').html( 'fail!' );
-            $( '#tmpNodesTags').html( 'fail!' );
-            $( '#tmpSetupMap').html( 'fail!' );
-            $( '#tmpWayNode').html( 'fail!' );
-            $( '#tmpWays').html( 'fail!' );
-            $( '#tmpWaysTags').html( 'fail!' );
+            $( '#status').html( "Internal server error / Erro do servidor" );
 
             bar.animate(0.0);
             clearTimeout( checkTimeOut );
@@ -114,8 +121,15 @@
 <body>
   <div id="container"></div>
   <div>&nbsp;</div>
+  <div id="status" style="text-align: center; color: #FF0000;">&nbsp;</div>
+  <div>&nbsp;</div>
+  <div>&nbsp;</div>
   <div>
     <table border="0" width="200px">
+      <tr>
+        <td style="width: 30%;">processo</td>
+        <td id="process" style="width: 70%; text-align: right">...</td>
+      </tr>
       <tr>
         <td style="width: 30%;">total</td>
         <td id="total" style="width: 70%; text-align: right">...</td>
@@ -131,10 +145,6 @@
       <tr>
         <td style="width: 30%;">tmpNodesTags</td>
         <td id="tmpNodesTags" style="width: 70%; text-align: right">...</td>
-      </tr>
-      <tr>
-        <td style="width: 30%;">tmpSetupMap</td>
-        <td id="tmpSetupMap" style="width: 70%; text-align: right">...</td>
       </tr>
       <tr>
         <td style="width: 30%;">tmpWayNode</td>

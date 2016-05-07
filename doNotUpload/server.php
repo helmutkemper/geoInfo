@@ -8,7 +8,7 @@
   $_SERVER[ "html_tag_pre" ] = "off";
   $_SERVER[ "disable_login_needed" ] = "off";
 
-  $_SERVER[ "paginationOffset" ] = 20;
+  $_SERVER[ "GEOINFO_PAGINATION_OFFSET" ] = 20;
 
 
   $_SERVER[ "database_user" ] = null;
@@ -59,4 +59,4 @@
   $_SERVER[ "mongo_connection_string" ]   = null;
   $_SERVER[ "mongo_options_array" ]       = array("socketTimeoutMS" => "90000");
   $_SERVER[ "mongo_drive_options_array" ] = array();
-  $_SERVER[ "mongo_database" ]            = "curriculo";
+  $_SERVER[ "mongo_database" ]            = "curriculo_2";

@@ -13,6 +13,35 @@
       $this->garbageCollectorCArr = null;
     }
 
+    protected function debugEnable( $enableABoo ){
+      global $debugEnableGBoo;
+
+      $debugEnableGBoo = $enableABoo;
+    }
+
+    protected function debug( &$dataAX ){
+      global $debugEnableGBoo;
+      global $debugDataGArr;
+
+      if( $debugEnableGBoo == false ){
+        return;
+      }
+
+      $debugDataGArr[] = $dataAX;
+    }
+
+    protected function setError( $errorAStr ){
+      global $errorGArr;
+
+      $errorGArr[] = $errorAStr;
+    }
+
+    protected function setProcessEnd(){
+      global $processEndGBoo;
+
+      $processEndGBoo = true;
+    }
+
     /** Define a saída em formato json com cabeçalho complementar para paginação. [ padrão ]
      * @code
       {
