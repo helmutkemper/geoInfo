@@ -404,10 +404,14 @@
         }
         catch( Exception $e )
         {
+          /*
+          todo: descobrir o motivo do erro
+          throw new Exception ( $e->getMessage() );
           print $e->getMessage();
           print "<br>";
           var_dump( $keyRef );
           print "<br>";
+          */
         }
       }
     }

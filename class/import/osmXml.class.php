@@ -22,7 +22,6 @@
     protected $makeFileToExportIndexCUInt;
     protected $previousFileTextCStr;
     protected $compressDataCStr;
-    protected $compressIndexCUInt;
     protected $fileLastByteReadCUInt;
 
     public function __construct()
@@ -260,46 +259,9 @@
     {
       $this->makeFileToExportIndexCUInt += 1;
 
-      $collectionLObj = $this->collectionTmpNodesCObj->find();
-      $tmpNodesCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionTmpNodeTagCObj->find();
-      $tmpNodesTagsCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionTmpWaysCObj->find();
-      $tmpWaysCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionTmpWayTagCObj->find();
-      $tmpWaysTagsCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionTmpWayNodeCObj->find();
-      $tmpWayNodeCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionSetupFill->find();
-      $tmpFillSetupCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionSetupMap->find();
-      $tmpSetupMapCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionNodesCObj->find();
-      $nodesCountLUInt = $collectionLObj->count();
-
-      $collectionLObj = $this->collectionWaysCObj->find();
-      $waysCountLUInt = $collectionLObj->count();
-
       return array(
         "osmXmlToDataBaseCompressIdFUInt" => $this->makeFileToExportIndexCUInt,
-        "compressIndex" => $this->compressIndexCUInt,
         "block" => $this->makeFileToExportIndexCUInt,
-        "tmpNodes" => $tmpNodesCountLUInt,
-        "tmpNodesTags" => $tmpNodesTagsCountLUInt,
-        "tmpWays" => $tmpWaysCountLUInt,
-        "tmpWaysTags" => $tmpWaysTagsCountLUInt,
-        "tmpWayNode" => $tmpWayNodeCountLUInt,
-        "tmpFillSetup" => $tmpFillSetupCountLUInt,
-        "tmpSetupMap" => $tmpSetupMapCountLUInt,
-        "nodes" => $nodesCountLUInt,
-        "ways" => $waysCountLUInt,
         "total" => ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt )
       );
     }
