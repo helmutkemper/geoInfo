@@ -19,13 +19,23 @@
      */
     protected $parserXmlBytesPerPageCUInt;
 
-    protected $makeFileToExportIndexCUInt;
+    protected $blockIndexCUInt;
     protected $previousFileTextCStr;
-    protected $compressDataCStr;
+    //protected $compressDataCStr;
     protected $fileLastByteReadCUInt;
 
     public function __construct()
     {
+      if( is_null( $this->fileLastByteReadCUInt ) ){
+        $this->fileLastByteReadCUInt = 0;
+      }
+      if( is_null( $this->blockIndexCUInt ) ){
+        $this->blockIndexCUInt = 0;
+      }
+      if( is_null( $this->previousFileTextCStr ) ){
+        $this->previousFileTextCStr = "";
+      }
+
       parent::__construct();
     }
 
@@ -34,6 +44,30 @@
       $this->microTimeCObj = microtime( true );
 
       $this->parserXmlBytesPerPageCUInt = $parserXmlBytesPerPageAUInt;
+    }
+
+    protected function getPreviousBuffer(){
+      return $this->previousFileTextCStr;
+    }
+
+    protected function setPreviousBuffer( $valueAUInt ){
+      $this->previousFileTextCStr = $valueAUInt;
+    }
+
+    protected function getDataBlock(){
+      return $this->blockIndexCUInt;
+    }
+
+    protected function setDataBlock( $valueAUInt ){
+      $this->blockIndexCUInt = $valueAUInt;
+    }
+
+    protected function getFilePointer(){
+      return $this->fileLastByteReadCUInt;
+    }
+
+    protected function setFilePointer( $valueAUInt ){
+      $this->fileLastByteReadCUInt = $valueAUInt;
     }
 
     public function processOsmFile ( $osmFileNameAStr )
@@ -233,13 +267,14 @@
       }
     }
 
+    /*
     protected function addToCompressedFile ( $textAStr, $idOfDataAStr )
     {
       switch ( $idOfDataAStr )
       {
         case "createDataBaseAndSelect":
         case "createTables":
-          if( $this->makeFileToExportIndexCUInt == 0 )
+          if( $this->blockIndexCUInt == 0 )
           {
             $this->compressDataCStr .= $textAStr;
           }
@@ -254,14 +289,14 @@
           break;
       }
     }
+    */
 
     private function runNextPage()
     {
-      $this->makeFileToExportIndexCUInt += 1;
+      $this->blockIndexCUInt += 1;
 
       return array(
-        "osmXmlToDataBaseCompressIdFUInt" => $this->makeFileToExportIndexCUInt,
-        "block" => $this->makeFileToExportIndexCUInt,
+        "block" => $this->blockIndexCUInt,
         "total" => ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt )
       );
     }

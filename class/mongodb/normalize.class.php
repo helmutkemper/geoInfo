@@ -13,6 +13,30 @@
       $this->garbageCollectorCArr = null;
     }
 
+    protected function setPageOffset( $valueAUInt ){
+      global $pageOffsetGUInt;
+
+      $pageOffsetGUInt = $valueAUInt;
+    }
+
+    protected function setPageNextLink( $valueAUInt ){
+      global $pageNextLinkGStr;
+
+      $pageNextLinkGStr = $valueAUInt;
+    }
+
+    protected function setPageLimit( $valueAUInt ){
+      global $pageLimitGUInt;
+
+      $pageLimitGUInt = $valueAUInt;
+    }
+
+    protected function setPageTotal( $valueAUInt ){
+      global $pageTotalGObj;
+
+      $pageTotalGObj = $valueAUInt;
+    }
+
     protected function debugEnable( $enableABoo ){
       global $debugEnableGBoo;
 

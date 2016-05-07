@@ -145,6 +145,11 @@
      */
     protected $collectionWaysCObj;
 
+    public function __construct()
+    {
+      parent::__construct();
+    }
+
     /**
      * Conecta ao banco de dados.
      */
@@ -414,6 +419,11 @@
           */
         }
       }
+
+      return array(
+        "block" => $this->makeFileToExportIndexCUInt,
+        "total" => ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt )
+      );
     }
 
     public function createNode( $nodeIdAUInt, $changeSetAUInt, $userOsmIdAUInt, $versionAUInt, $visibleABol, $latitudeAFlt, $longitudeAFlt, $timeStampATstp, $idUserAUInt = 1, $idLoaderAUInt = 1 )

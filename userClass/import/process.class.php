@@ -59,27 +59,13 @@
       );
     }
 
+    //http://localhost/open/html/import/index.html
     public function importData(){
-      global $pageLimitGUInt;
-      global $pageOffsetGUInt;
-      global $pageTotalGObj;
-      global $pageNextLinkGStr;
-
-      if ( !isset( $_REQUEST[ "osmXmlToDataBaseCompressIdFUInt" ] ) )
+      if( isset( $_REQUEST[ "block" ] ) )
       {
-        $this->previousFileTextCStr = "";
-        $this->compressDataCStr = "";
-        $this->fileLastByteReadCUInt = 0;
-        $this->makeFileToExportIndexCUInt = 0;
-      }
-      else
-      {
-        $this->makeFileToExportIndexCUInt = $_REQUEST[ "osmXmlToDataBaseCompressIdFUInt" ];
-
-        $this->fileLastByteReadCUInt = $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ];
-        $this->previousFileTextCStr = $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ];
-        $this->compressDataCStr = $_SESSION[ "osmXmlToDataBase" ][ "compressData" ];
-        $this->fileLastByteReadCUInt = $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ];
+        $this->setDataBlock( $_SESSION[ "osmXmlToDataBase" ][ "blockId" ] );
+        $this->setFilePointer( $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] );
+        $this->setPreviousBuffer( $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] );
       }
 
       $this->init( size::MByte( 5 ) );
@@ -88,17 +74,16 @@
 
       $returnLArr = $this->processOsmFile( "./support/brazil-latest.osm" );
 
-      $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] = $this->fileLastByteReadCUInt;
-      $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] = $this->previousFileTextCStr;
-      $_SESSION[ "osmXmlToDataBase" ][ "compressData" ] = $this->compressDataCStr;
-      $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] = $this->fileLastByteReadCUInt;
+      $_SESSION[ "osmXmlToDataBase" ][ "blockId" ] = $this->getDataBlock();
+      $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] = $this->getFilePointer();
+      $_SESSION[ "osmXmlToDataBase" ][ "previousFileText" ] = $this->getPreviousBuffer();
 
-      $pageLimitGUInt = 1;
-      $pageOffsetGUInt = $this->makeFileToExportIndexCUInt;
-      $pageTotalGObj = ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt );
+      $this->setPageLimit( 1 );
+      $this->setPageOffset( $this->getDataBlock() );
+      $this->setPageTotal( ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt ) );
 
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
-      $pageNextLinkGStr = $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?osmXmlToDataBaseCompressIdFUInt={$this->makeFileToExportIndexCUInt}";
+      $this->setPageNextLink( $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block=" . $this->getDataBlock() );
 
       if( $this->getProcessEnd() == true ){
         $_SESSION[ "osmXmlToDataBase" ] = array();
@@ -110,7 +95,11 @@
     }
 
     public function processNodeData(){
-      if( !isset( $_SESSION[ "osmXmlToDataBase" ][ "limit" ] ) ){
+      global $pageLimitGUInt;
+      global $pageOffsetGUInt;
+      global $pageNextLinkGStr;
+
+      if ( !isset( $_REQUEST[ "block" ] ) ){
         $_SESSION[ "osmXmlToDataBase" ][ "limit" ] = 500;
         $_SESSION[ "osmXmlToDataBase" ][ "offSet" ] = 0;
       }
@@ -118,6 +107,20 @@
         $_SESSION[ "osmXmlToDataBase" ][ "offSet" ] += $_SESSION[ "osmXmlToDataBase" ][ "limit" ];
       }
 
-      $this->concatenateNodeData( $_SESSION[ "osmXmlToDataBase" ][ "limit" ], $_SESSION[ "osmXmlToDataBase" ][ "offSet" ] );
+      $this->setNewCollections();
+      $returnLArr =  $this->concatenateNodeData( $_SESSION[ "osmXmlToDataBase" ][ "limit" ], $_SESSION[ "osmXmlToDataBase" ][ "offSet" ] );
+
+      $pageLimitGUInt = 1;
+      $pageOffsetGUInt = $this->blockIndexCUInt;
+      //$this->setPageTotal( ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt ) );
+
+      $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
+      $pageNextLinkGStr = $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block={$this->blockIndexCUInt}";
+
+      if( $this->getProcessEnd() == true ){
+        $_SESSION[ "osmXmlToDataBase" ] = array();
+      }
+
+      return array_merge( $returnLArr, $this->getUserData() );
     }
   }

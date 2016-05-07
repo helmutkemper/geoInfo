@@ -29,6 +29,7 @@
     var checkTimeOut;
     var processGStr = 'import';
     var urlGStr = "../../../import/process/importData/";
+    //var urlGStr = "../../../import/process/processNodeData/";
 
     $( document ).ready( function(){
       bar = new ProgressBar.Circle(container, {
@@ -90,8 +91,6 @@
             if( processGStr == 'import' ){
               if( jsonData.meta.offset != jsonData.meta.total_count ) {
                 dataToSend.block = jsonData.objects.block;
-                dataToSend.osmXmlToDataBaseCompressIdFUInt = jsonData.objects.osmXmlToDataBaseCompressIdFUInt;
-
                 successDataGBoo = true;
               }
             }
