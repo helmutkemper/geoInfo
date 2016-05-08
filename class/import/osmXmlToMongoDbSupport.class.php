@@ -136,6 +136,8 @@
      */
     protected $collectionNodesCObj;
 
+    protected $blockIndexCUInt;
+
     /**
      * Coleção de dados já formatada e pronta para uso com todas as linhas de construção do mapa.
      * Entenda como linhas, todas as linhas que formam a interface gráfica do mapa, como ruas, contorno das construções,
@@ -147,7 +149,19 @@
 
     public function __construct()
     {
+      if( is_null( $this->blockIndexCUInt ) ){
+        $this->blockIndexCUInt = 0;
+      }
+
       parent::__construct();
+    }
+
+    public function getSetupFillPointer(){
+      return $this->collectionSetupFill;
+    }
+
+    public function getSetupMapPointer(){
+      return $this->collectionSetupMap;
     }
 
     /**
@@ -312,10 +326,20 @@
       return $this->collectionWaysCObj->find( $dataAArr, $fieldListAArr );
     }
 
-    /**
-     * @param null $limitAUInt
-     * @param null $skipAUInt
-     */
+    public function getNodeDataTotal(){
+      $cursorTmpNodeLObj = $this->collectionTmpNodesCObj->find(
+        array()
+      );
+      return $cursorTmpNodeLObj->count();
+    }
+
+    public function getWayDataTotal(){
+      $cursorTmpNodeLObj = $this->collectionTmpWaysCObj->find(
+        array()
+      );
+      return $cursorTmpNodeLObj->count();
+    }
+
     public function concatenateNodeData( $limitAUInt = null, $skipAUInt = null )
     {
       $cursorTmpNodeLObj = $this->collectionTmpNodesCObj->find(
@@ -420,9 +444,11 @@
         }
       }
 
+      $this->blockIndexCUInt += 1;
+
       return array(
-        "block" => $this->makeFileToExportIndexCUInt,
-        "total" => ceil( filesize( $this->osmFileNameCStr ) / $this->parserXmlBytesPerPageCUInt )
+        "block" => $this->blockIndexCUInt,
+        "total" => ceil( $this->getNodeDataTotal() / $skipAUInt )
       );
     }
 
@@ -441,7 +467,7 @@
       );
     }
 
-    public function concatenateWayTagsAndNodes()
+    public function concatenateWayTagsAndNodes( $limitAUInt = null, $skipAUInt = null )
     {
       // Procura pelo setup do mapa
       $setupMapCollectionLObj  = $this->dataBaseCObj->setupMap;
@@ -460,6 +486,17 @@
       // Procura por todos os ways contidos no mapa
       // todo: limitar isto para paginar
       $cursorWaysLObj = $this->collectionTmpWaysCObj->find( array() );
+
+      if( !is_null( $skipAUInt ) )
+      {
+        $cursorWaysLObj->skip( $skipAUInt );
+      }
+
+      if( !is_null( $limitAUInt ) )
+      {
+        $cursorWaysLObj->limit( $limitAUInt );
+      }
+
       foreach( $cursorWaysLObj as $wayDataLArr )
       {
         // Procura por todas as tags do way
@@ -597,13 +634,22 @@
           }
           catch( Exception $e )
           {
+            /*
             print $e->getMessage();
             print "<br>";
             var_dump( $keyRef );
             print "<br>";
+            */
           }
         }
       }
+
+      $this->blockIndexCUInt += 1;
+
+      return array(
+        "block" => $this->blockIndexCUInt,
+        "total" => ceil( $this->getWayDataTotal() / $skipAUInt )
+      );
     }
 
     //createWay( $nodeAttributesAArr["ID"], $nodeAttributesAArr["CHANGESET"], $nodeAttributesAArr["UID"], $nodeAttributesAArr["VERSION"], $nodeAttributesAArr["VISIBLE"], $nodeAttributesAArr["TIMESTAMP"], $this->idUserCUInt, $this->idLoaderCUInt );

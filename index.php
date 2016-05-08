@@ -1,5 +1,24 @@
 <?php
 
+/*
+  $c = new MongoClient();
+  $db = $c->qconsp;
+  $fs = $db->setupFill;
+
+  $r = fopen("./fillSetup.json","w");
+
+  $cl = $fs->find();
+  foreach( $cl as $l ){
+    $l = json_encode($l);
+    $l = str_replace("\n","\\n",$l);
+    $l = str_replace("\r","\\r",$l);
+    fwrite($r,"{$l}\r\n");
+    //print "\$collectionFillSetup->insert(\"json_decode({$l})\");\r\n<br>";
+  }
+  fclose($r);
+*/
+
+
   //?start_debug=1&debug_host=127.0.0.1&debug_port=10137
 
   session_start ();
@@ -42,9 +61,6 @@
   else{
     date_default_timezone_set ( TIMEZONE_DEFAULT );
   }
-
-
-
 
   include_once( "./class/mongodb/db.class.php" );
   include_once( "./class/mongodb/normalize.class.php" );

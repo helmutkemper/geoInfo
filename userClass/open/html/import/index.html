@@ -27,11 +27,12 @@
     var dataToSend = {};
     var successDataGBoo = true;
     var checkTimeOut;
-    var processGStr = 'import';
-    var urlGStr = "../../../import/process/importData/";
-    //var urlGStr = "../../../import/process/processNodeData/";
+    var processGStr = 'importMapSetup';
+
+    var urlGStr = "../../../import/process/importMapSetup/";
 
     $( document ).ready( function(){
+
       bar = new ProgressBar.Circle(container, {
         color: '#aaa',
         // This has to be the same size as the maximum width to
@@ -74,8 +75,32 @@
 
             bar.animate( jsonData.meta.offset / jsonData.meta.total_count );
 
-            if( ( jsonData.meta.processes_end ) && ( processGStr == 'import' ) ){
+            if( jsonData.meta.processes_end ){
+              jsonData.objects.block = 0;
+              jsonData.meta.offset = 0;
+              jsonData.meta.total_count = 1;
 
+              bar.animate( 0.0 );
+            }
+
+            if( ( jsonData.meta.processes_end ) && ( processGStr == 'importMapSetup' ) ) {
+              processGStr = 'processFillSetup';
+              urlGStr = "../../../import/process/importFillSetup/";
+            }
+            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processFillSetup' ) ) {
+              processGStr = 'importData';
+              urlGStr = "../../../import/process/importData/";
+            }
+            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'importData' ) ){
+              processGStr = 'processWays';
+              urlGStr = "../../../import/process/processWaysData/";
+            }
+            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processWays' ) ){
+              processGStr = 'processNodeData';
+              urlGStr = "../../../import/process/processNodeData/";
+            }
+            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processNodeData' ) ){
+              processGStr = '';
             }
 
             $( '#process').html( processGStr );
@@ -83,16 +108,27 @@
             $( '#atual').html( jsonData.meta.offset );
             $( '#tmpNodes').html( jsonData.objects.tmpNodes );
             $( '#tmpNodesTags').html( jsonData.objects.tmpNodesTags );
-            $( '#tmpSetupMap').html( jsonData.objects.tmpSetupMap );
+            $( '#setupMap').html( jsonData.objects.setupMap );
+            $( '#setupFill').html( jsonData.objects.setupFill );
             $( '#tmpWayNode').html( jsonData.objects.tmpWayNode );
             $( '#tmpWays').html( jsonData.objects.tmpWays );
             $( '#tmpWaysTags').html( jsonData.objects.tmpWaysTags );
+            $( '#ways').html( jsonData.objects.ways );
+            $( '#nodes').html( jsonData.objects.nodes );
 
-            if( processGStr == 'import' ){
+            if( processGStr !== '' ){
               if( jsonData.meta.offset != jsonData.meta.total_count ) {
-                dataToSend.block = jsonData.objects.block;
+                if( jsonData.objects.block != 0 ) {
+                  dataToSend.block = jsonData.objects.block;
+                }
+                else{
+                  delete dataToSend.block;
+                }
                 successDataGBoo = true;
               }
+            }
+            else{
+              $( '#status').html( "Installation was successful / Instalação completa" );
             }
           })
           .fail(function( jsonData ) {
@@ -137,6 +173,14 @@
         <td id="atual" style="width: 70%; text-align: right">...</td>
       </tr>
       <tr>
+        <td style="width: 30%;">fillSetup</td>
+        <td id="setupFill" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">setupMap</td>
+        <td id="setupMap" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
         <td style="width: 30%;">tmpNodes</td>
         <td id="tmpNodes" style="width: 70%; text-align: right">...</td>
       </tr>
@@ -155,6 +199,14 @@
       <tr>
         <td style="width: 30%;">tmpWaysTags</td>
         <td id="tmpWaysTags" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">nodes</td>
+        <td id="nodes" style="width: 70%; text-align: right">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">ways</td>
+        <td id="ways" style="width: 70%; text-align: right">...</td>
       </tr>
     </table>
   </div>
