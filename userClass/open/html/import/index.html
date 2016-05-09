@@ -92,12 +92,12 @@
               urlGStr = "../../../import/process/importData/";
             }
             else if( ( jsonData.meta.processes_end ) && ( processGStr == 'importData' ) ){
-              processGStr = 'processWays';
-              urlGStr = "../../../import/process/processWaysData/";
-            }
-            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processWays' ) ){
               processGStr = 'processNodeData';
               urlGStr = "../../../import/process/processNodeData/";
+            }
+            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processWays' ) ){
+              processGStr = 'processWays';
+              urlGStr = "../../../import/process/processWaysData/";
             }
             else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processNodeData' ) ){
               processGStr = '';
@@ -118,6 +118,9 @@
 
             if( processGStr !== '' ){
               if( jsonData.meta.offset != jsonData.meta.total_count ) {
+                dataToSend.start_debug=1;
+                dataToSend.debug_host='127.0.0.1';
+                dataToSend.debug_port=10137;
                 if( jsonData.objects.block != 0 ) {
                   dataToSend.block = jsonData.objects.block;
                 }

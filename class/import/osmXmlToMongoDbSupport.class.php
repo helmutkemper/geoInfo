@@ -446,6 +446,17 @@
 
       $this->blockIndexCUInt += 1;
 
+      $cursorTmpNodeLObj = $this->collectionTmpNodesCObj->find();
+      if( ( !is_null( $skipAUInt ) ) && ( !is_null( $limitAUInt ) ) )
+      {
+        $cursorTmpNodeLObj->skip( $skipAUInt + $limitAUInt );
+        $lixo = $cursorTmpNodeLObj->count();
+        if( $cursorTmpNodeLObj->count() == 0 ){
+          $a = $lixo;
+          $this->setProcessEnd();
+        }
+      }
+
       return array(
         "block" => $this->blockIndexCUInt,
         "total" => ceil( $this->getNodeDataTotal() / $skipAUInt )
@@ -474,14 +485,14 @@
       $setupMapCursorLObj = $setupMapCollectionLObj->findOne();
 
       // Procura pelo setup do desenho
-      $mapConstructLineStyleLArr = array();
-      $setupFillDataLArr = array();
-      $setupFillCollectionLObj = $this->dataBaseCObj->setupFill;
-      $setupFillCursorLObj = $setupFillCollectionLObj->find();
-      foreach( $setupFillCursorLObj as $dataQueryGlobalDataTagLObj )
-      {
-        $setupFillDataLArr[] = $dataQueryGlobalDataTagLObj;
-      }
+      //$mapConstructLineStyleLArr = array();
+      //$setupFillDataLArr = array();
+      //$setupFillCollectionLObj = $this->dataBaseCObj->setupFill;
+      //$setupFillCursorLObj = $setupFillCollectionLObj->find();
+      //foreach( $setupFillCursorLObj as $dataQueryGlobalDataTagLObj )
+      //{
+      //  $setupFillDataLArr[] = $dataQueryGlobalDataTagLObj;
+      //}
 
       // Procura por todos os ways contidos no mapa
       // todo: limitar isto para paginar
@@ -554,10 +565,10 @@
           )
         );
         $wayNodesLArr = array();
-        $latitudeMinLSDbl       =  999999999;
-        $latitudeMaxLSDbl       = -999999999;
-        $longitudeMinLSDbl      =  999999999;
-        $longitudeMaxLSDbl      = -999999999;
+        //$latitudeMinLSDbl       =  999999999;
+        //$latitudeMaxLSDbl       = -999999999;
+        //$longitudeMinLSDbl      =  999999999;
+        //$longitudeMaxLSDbl      = -999999999;
         foreach( $cursorWayNodeLObj as $wayNodeDataLArr )
         {
           $cursorNodeLObj = $this->collectionTmpNodesCObj->find(
@@ -571,14 +582,14 @@
           $middleLngLSFld  = 0;
           foreach( $cursorNodeLObj as $nodeDataLArr )
           {
-            $middleLatLSFld   = $nodeDataLArr[ "latitude" ];
-            $middleLngLSFld   = $nodeDataLArr[ "longitude" ];
-            $countNodesLUInt += 1;
+            //$middleLatLSFld   = $nodeDataLArr[ "latitude" ];
+            //$middleLngLSFld   = $nodeDataLArr[ "longitude" ];
+            //$countNodesLUInt += 1;
 
-            $latitudeMinLSDbl  = min( $latitudeMinLSDbl, $nodeDataLArr[ "latitude" ] );
-            $latitudeMaxLSDbl  = max( $latitudeMaxLSDbl, $nodeDataLArr[ "latitude" ] );
-            $longitudeMinLSDbl = min( $longitudeMinLSDbl, $nodeDataLArr[ "longitude" ] );
-            $longitudeMaxLSDbl = max( $longitudeMaxLSDbl, $nodeDataLArr[ "longitude" ] );
+            //$latitudeMinLSDbl  = min( $latitudeMinLSDbl, $nodeDataLArr[ "latitude" ] );
+            //$latitudeMaxLSDbl  = max( $latitudeMaxLSDbl, $nodeDataLArr[ "latitude" ] );
+            //$longitudeMinLSDbl = min( $longitudeMinLSDbl, $nodeDataLArr[ "longitude" ] );
+            //$longitudeMaxLSDbl = max( $longitudeMaxLSDbl, $nodeDataLArr[ "longitude" ] );
 
             $wayNodesLArr[] = array(
               $nodeDataLArr[ "latitude" ],
@@ -586,8 +597,8 @@
             );
           }
 
-          $middleLatLSFld /= $countNodesLUInt;
-          $middleLngLSFld /= $countNodesLUInt;
+          //$middleLatLSFld /= $countNodesLUInt;
+          //$middleLngLSFld /= $countNodesLUInt;
         }
 
         try
@@ -595,19 +606,19 @@
           $dataToInsertLArr = array_merge(
             $wayDataLArr,
             array(
-              "vMax" => array(
+              /*"vMax" => array(
                 $latitudeMaxLSDbl,
                 $longitudeMaxLSDbl
               ),
               "vMin" => array(
                 $latitudeMinLSDbl,
                 $longitudeMinLSDbl
-              ),
+              ),*/
               "tags" => $keyRef,
-              "middle" => array(
+              /*"middle" => array(
                 $middleLatLSFld,
                 $middleLngLSFld
-              ),
+              ),*/
               "nodes" => $wayNodesLArr,
               "nodeFirst" => $wayNodesLArr[ 0 ],
               "nodeLast" => $wayNodesLArr[ count($wayNodesLArr) - 1 ]

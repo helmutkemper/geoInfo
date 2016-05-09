@@ -34,7 +34,13 @@
     protected function setPageTotal( $valueAUInt ){
       global $pageTotalGObj;
 
-      $pageTotalGObj = $valueAUInt;
+      $pageTotalGObj = ceil( $valueAUInt );
+    }
+
+    protected function getPageTotal(){
+      global $pageTotalGObj;
+
+      return $pageTotalGObj;
     }
 
     protected function debugEnable( $enableABoo ){

@@ -183,13 +183,9 @@
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
       $this->setPageNextLink( $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block=" . $this->getDataBlock() );
 
-      if( $this->getProcessEnd() == true ){
+      if( $this->getProcessEnd() ){
         $_SESSION[ "osmXmlToDataBase" ] = array();
       }
-
-
-
-      //$this->concatenateWayTagsAndNodes();
 
       return array_merge( $returnLArr, $this->getUserData() );
     }
@@ -216,7 +212,7 @@
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
       $this->setPageNextLink( $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block=" . $this->getDataBlock() );
 
-      if( $this->getProcessEnd() == true ){
+      if( $_REQUEST[ "block" ] == $this->getDataBlock() ){
         $_SESSION[ "osmXmlToDataBase" ] = array();
       }
 
