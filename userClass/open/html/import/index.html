@@ -27,11 +27,13 @@
     var dataToSend = {};
     var successDataGBoo = true;
     var checkTimeOut;
-    var processGStr = 'importMapSetup';
 
-    var urlGStr = "../../../import/process/importMapSetup/";
+    var processGStr = 'starting';
+    var urlGStr = "../../../import/process/importFillSetup/";
 
     $( document ).ready( function(){
+
+      $( '#process').html( 'Import draw setup' );
 
       bar = new ProgressBar.Circle(container, {
         color: '#aaa',
@@ -57,7 +59,6 @@
           } else {
             circle.setText(value);
           }
-
         }
       });
       bar.text.style.fontFamily = '"Raleway", Helvetica, sans-serif';
@@ -73,38 +74,51 @@
               return;
             }
 
-            bar.animate( jsonData.meta.offset / jsonData.meta.total_count );
-
-            if( jsonData.meta.processes_end ){
+            if( jsonData.meta.offset == jsonData.meta.total_count ){
               jsonData.objects.block = 0;
               jsonData.meta.offset = 0;
-              jsonData.meta.total_count = 1;
+              jsonData.meta.total_count = -1;
+
+              if( processGStr == 'starting' ) {
+                $( '#process').html( 'Import draw setup' );
+                processGStr = 'importMapSetup';
+                urlGStr = "../../../import/process/importMapSetup/";
+              }
+              else if( processGStr == 'importMapSetup' ) {
+                $( '#process').html( 'Import OSM file' );
+                processGStr = 'importData';
+                urlGStr = "../../../import/process/importData/";
+              }
+              else if( processGStr == 'importData' ){
+                $( '#process').html( 'Process Nodes' );
+                processGStr = 'processNodeData';
+                urlGStr = "../../../import/process/processNodeData/";
+              }
+              else if( processGStr == 'processNodeData' ){
+                $( '#process').html( 'Process Ways' );
+                processGStr = 'processWays';
+                urlGStr = "../../../import/process/processWaysData/";
+              }
+              else if( processGStr == 'processWays' ){
+                processGStr = '';
+              }
+              else{
+                $( '#process').html( 'Erro' );
+              }
 
               bar.animate( 0.0 );
             }
-
-            if( ( jsonData.meta.processes_end ) && ( processGStr == 'importMapSetup' ) ) {
-              processGStr = 'processFillSetup';
-              urlGStr = "../../../import/process/importFillSetup/";
-            }
-            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processFillSetup' ) ) {
-              processGStr = 'importData';
-              urlGStr = "../../../import/process/importData/";
-            }
-            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'importData' ) ){
-              processGStr = 'processNodeData';
-              urlGStr = "../../../import/process/processNodeData/";
-            }
-            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processWays' ) ){
-              processGStr = 'processWays';
-              urlGStr = "../../../import/process/processWaysData/";
-            }
-            else if( ( jsonData.meta.processes_end ) && ( processGStr == 'processNodeData' ) ){
-              processGStr = '';
+            else{
+              bar.animate( jsonData.meta.offset / jsonData.meta.total_count );
             }
 
-            $( '#process').html( processGStr );
-            $( '#total').html( jsonData.meta.total_count );
+            if( jsonData.meta.total_count == -1 ){
+              $( '#total').html( "Waiting / Aguardando" );
+            }
+            else{
+              $( '#total').html( jsonData.meta.total_count );
+            }
+
             $( '#atual').html( jsonData.meta.offset );
             $( '#tmpNodes').html( jsonData.objects.tmpNodes );
             $( '#tmpNodesTags').html( jsonData.objects.tmpNodesTags );
@@ -162,54 +176,54 @@
   <div>&nbsp;</div>
   <div>&nbsp;</div>
   <div>
-    <table border="0" width="200px">
+    <table border="0" width="300px">
       <tr>
-        <td style="width: 30%;">processo</td>
-        <td id="process" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">processo:</td>
+        <td id="process" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">total</td>
-        <td id="total" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">total:</td>
+        <td id="total" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">atual</td>
-        <td id="atual" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">atual:</td>
+        <td id="atual" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">fillSetup</td>
-        <td id="setupFill" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">fillSetup:</td>
+        <td id="setupFill" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">setupMap</td>
-        <td id="setupMap" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">setupMap:</td>
+        <td id="setupMap" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">tmpNodes</td>
-        <td id="tmpNodes" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">tmpNodes:</td>
+        <td id="tmpNodes" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">tmpNodesTags</td>
-        <td id="tmpNodesTags" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">tmpNodesTags:</td>
+        <td id="tmpNodesTags" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">tmpWayNode</td>
-        <td id="tmpWayNode" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">tmpWayNode:</td>
+        <td id="tmpWayNode" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">tmpWays</td>
-        <td id="tmpWays" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">tmpWays:</td>
+        <td id="tmpWays" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">tmpWaysTags</td>
-        <td id="tmpWaysTags" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">tmpWaysTags:</td>
+        <td id="tmpWaysTags" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">nodes</td>
-        <td id="nodes" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">nodes:</td>
+        <td id="nodes" style="width: 70%; text-align: left">...</td>
       </tr>
       <tr>
-        <td style="width: 30%;">ways</td>
-        <td id="ways" style="width: 70%; text-align: right">...</td>
+        <td style="width: 30%; text-align: right">ways:</td>
+        <td id="ways" style="width: 70%; text-align: left">...</td>
       </tr>
     </table>
   </div>
