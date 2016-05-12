@@ -135,6 +135,8 @@
      * @var $collectionNodesCObj Object conexão com a coleção nodes.
      */
     protected $collectionNodesCObj;
+    
+    protected $collectionKeyValueDistinctCObj;
 
     protected $blockIndexCUInt;
 
@@ -169,17 +171,19 @@
      */
     public function setNewCollections()
     {
-      $this->collectionTmpNodesCObj    = $this->dataBaseCObj->tmpNodes;
-      $this->collectionTmpNodeTagCObj  = $this->dataBaseCObj->tmpNodeTag;
-      $this->collectionTmpWaysCObj     = $this->dataBaseCObj->tmpWays;
-      $this->collectionTmpWayTagCObj   = $this->dataBaseCObj->tmpWayTag;
-      $this->collectionTmpWayNodeCObj  = $this->dataBaseCObj->tmpWaysNode;
+      $this->collectionTmpNodesCObj         = $this->dataBaseCObj->tmpNodes;
+      $this->collectionTmpNodeTagCObj       = $this->dataBaseCObj->tmpNodeTag;
+      $this->collectionTmpWaysCObj          = $this->dataBaseCObj->tmpWays;
+      $this->collectionTmpWayTagCObj        = $this->dataBaseCObj->tmpWayTag;
+      $this->collectionTmpWayNodeCObj       = $this->dataBaseCObj->tmpWaysNode;
 
-      $this->collectionSetupFill       = $this->dataBaseCObj->setupFill;
-      $this->collectionSetupMap        = $this->dataBaseCObj->setupMap;
+      $this->collectionSetupFill            = $this->dataBaseCObj->setupFill;
+      $this->collectionSetupMap             = $this->dataBaseCObj->setupMap;
 
-      $this->collectionNodesCObj       = $this->dataBaseCObj->nodes;
-      $this->collectionWaysCObj        = $this->dataBaseCObj->ways;
+      $this->collectionNodesCObj            = $this->dataBaseCObj->nodes;
+      $this->collectionWaysCObj             = $this->dataBaseCObj->ways;
+      
+      $this->collectionKeyValueDistinctCObj = $this->dataBaseCObj->keyValueDistinct;
     }
 
     /**
@@ -214,12 +218,20 @@
     public function createIndex()
     {
       // coleção tmpNodes
-      $indexInfoLArr =  $this->collectionTmpNodesCObj->getIndexInfo();
+      $indexInfoLArr =  $this->collectionKeyValueDistinctCObj->getIndexInfo();
 
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_key" ) ){
+        $this->collectionKeyValueDistinctCObj->createIndex( array( "k" => 1 ), array( "name" => "osm_key" ) );
+      }
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_value" ) ){
+        $this->collectionKeyValueDistinctCObj->createIndex( array( "v" => 1 ), array( "name" => "osm_value" ) );
+      }
+
+      // coleção tmpNodes
+      $indexInfoLArr =  $this->collectionTmpNodesCObj->getIndexInfo();
       if( !$this->getIndexExists( $indexInfoLArr, "osm_id_node" ) ){
         $this->collectionTmpNodesCObj->createIndex( array( "id_node" => 1 ), array( "name" => "osm_id_node" ) );
       }
-
       if( !$this->getIndexExists( $indexInfoLArr, "osm_lat_lng" ) ){
         $this->collectionTmpNodesCObj->createIndex( array( "latitde" => 1, "longitude" => 1 ), array( "name" => "osm_lat_lng" ) );
       }
@@ -306,6 +318,41 @@
       }
     }
 
+    protected function insertKeyDistinct( $keyAStr, $valueAX ){
+      $keyAStr = trim( $keyAStr );
+      $valueAX = trim( $valueAX );
+
+      $cursorLArr = $this->collectionKeyValueDistinctCObj->findOne(
+        array(
+          "k" => $keyAStr
+        )
+      );
+      if( count( $cursorLArr ) > 0 ){
+        if( in_array( $valueAX, $cursorLArr[ "v" ] ) ){
+          return;
+        }
+
+        $this->collectionKeyValueDistinctCObj->update(
+          array(
+            "k" => $keyAStr
+          ),
+          array(
+            '$set' => array(
+              "v" => array_merge( $cursorLArr[ "v" ], array( $valueAX ) )
+            )
+          )
+        );
+      }
+      else{
+        $this->collectionKeyValueDistinctCObj->insert(
+          array(
+            "k" => $keyAStr,
+            "v" => array( $valueAX )
+          )
+        );
+      }
+    }
+
     public function insertNode( $dataAArr )
     {
       $this->collectionNodesCObj->insert( $dataAArr );
@@ -373,7 +420,10 @@
         {
           $keyLArr = array_merge(explode(":", $nodeTagDataLArr["k"]), explode(":", $nodeTagDataLArr["v"]));
 
-          if( $nodeTagDataLArr["k"] == "type" )
+          $this->insertKeyDistinct( $nodeTagDataLArr[ "k" ], $nodeTagDataLArr[ "v" ] );
+          $this->insertKeyDistinct( "key", $nodeTagDataLArr[ "k" ] );
+
+          if( $nodeTagDataLArr[ "k" ] == "type" )
           {
             $fillDataLArr = $this->collectionSetupFill->findOne( array( "point_key" => $nodeTagDataLArr[ "k" ] ) );
             if( count( $fillDataLArr ) > 0 )
@@ -392,19 +442,15 @@
               {
                 $keyRef["val"] = ( bool )$keyValueLStr;
               }
+              else if ( is_numeric( $keyValueLStr ) )
+              {
+                $valueLSInt = ( int ) $keyValueLStr;
+                $keyRef["val"] = ( $keyValueLStr == $valueLSInt ) ? $valueLSInt : ( float ) $keyValueLStr;
+              }
               else
               {
-                if ( is_numeric( $keyValueLStr ) )
-                {
-                  $valueLSInt = ( int ) $keyValueLStr;
-                  $keyRef["val"] = ( $keyValueLStr == $valueLSInt ) ? $valueLSInt : ( float ) $keyValueLStr;
-                }
-                else
-                {
-                  $keyRef["val"] = $keyValueLStr;
-                }
+                $keyRef["val"] = $keyValueLStr;
               }
-
               $keyRef = &$keyOutLArr;
             }
             else
@@ -484,18 +530,7 @@
       $setupMapCollectionLObj  = $this->dataBaseCObj->setupMap;
       $setupMapCursorLObj = $setupMapCollectionLObj->findOne();
 
-      // Procura pelo setup do desenho
-      //$mapConstructLineStyleLArr = array();
-      //$setupFillDataLArr = array();
-      //$setupFillCollectionLObj = $this->dataBaseCObj->setupFill;
-      //$setupFillCursorLObj = $setupFillCollectionLObj->find();
-      //foreach( $setupFillCursorLObj as $dataQueryGlobalDataTagLObj )
-      //{
-      //  $setupFillDataLArr[] = $dataQueryGlobalDataTagLObj;
-      //}
-
       // Procura por todos os ways contidos no mapa
-      // todo: limitar isto para paginar
       $cursorWaysLObj = $this->collectionTmpWaysCObj->find( array() );
 
       if( !is_null( $skipAUInt ) )
@@ -524,7 +559,9 @@
           // Monta as tags em um único array
           // todo: transforma isto em função
           $keyRef = &$keyOutLArr;
-          $keyLArr = array_merge(explode(":", $nodeTagDataLArr["k"]), explode(":", $nodeTagDataLArr["v"]));
+          $this->insertKeyDistinct( $nodeTagDataLArr[ "k" ], $nodeTagDataLArr[ "v" ] );
+          $this->insertKeyDistinct( "key", $nodeTagDataLArr[ "k" ] );
+          $keyLArr = array_merge(explode( ":", $nodeTagDataLArr[ "k" ] ), explode(":", $nodeTagDataLArr["v"]));
           $countLUInt = count( $keyLArr ) - 1;
           foreach($keyLArr as $keyIdLUInt => $keyValueLStr)
           {
@@ -565,10 +602,6 @@
           )
         );
         $wayNodesLArr = array();
-        //$latitudeMinLSDbl       =  999999999;
-        //$latitudeMaxLSDbl       = -999999999;
-        //$longitudeMinLSDbl      =  999999999;
-        //$longitudeMaxLSDbl      = -999999999;
         foreach( $cursorWayNodeLObj as $wayNodeDataLArr )
         {
           $cursorNodeLObj = $this->collectionTmpNodesCObj->find(
@@ -576,29 +609,13 @@
               "id_node" => $wayNodeDataLArr[ "id_node" ]
             )
           );
-
-          $countNodesLUInt = 0;
-          $middleLatLSFld  = 0;
-          $middleLngLSFld  = 0;
           foreach( $cursorNodeLObj as $nodeDataLArr )
           {
-            //$middleLatLSFld   = $nodeDataLArr[ "latitude" ];
-            //$middleLngLSFld   = $nodeDataLArr[ "longitude" ];
-            //$countNodesLUInt += 1;
-
-            //$latitudeMinLSDbl  = min( $latitudeMinLSDbl, $nodeDataLArr[ "latitude" ] );
-            //$latitudeMaxLSDbl  = max( $latitudeMaxLSDbl, $nodeDataLArr[ "latitude" ] );
-            //$longitudeMinLSDbl = min( $longitudeMinLSDbl, $nodeDataLArr[ "longitude" ] );
-            //$longitudeMaxLSDbl = max( $longitudeMaxLSDbl, $nodeDataLArr[ "longitude" ] );
-
             $wayNodesLArr[] = array(
               $nodeDataLArr[ "latitude" ],
               $nodeDataLArr[ "longitude" ]
             );
           }
-
-          //$middleLatLSFld /= $countNodesLUInt;
-          //$middleLngLSFld /= $countNodesLUInt;
         }
 
         try
@@ -606,30 +623,16 @@
           $dataToInsertLArr = array_merge(
             $wayDataLArr,
             array(
-              /*"vMax" => array(
-                $latitudeMaxLSDbl,
-                $longitudeMaxLSDbl
-              ),
-              "vMin" => array(
-                $latitudeMinLSDbl,
-                $longitudeMinLSDbl
-              ),*/
               "tags" => $keyRef,
-              /*"middle" => array(
-                $middleLatLSFld,
-                $middleLngLSFld
-              ),*/
               "nodes" => $wayNodesLArr,
               "nodeFirst" => $wayNodesLArr[ 0 ],
               "nodeLast" => $wayNodesLArr[ count($wayNodesLArr) - 1 ]
             )
           );
-
           if( !isset( $dataToInsertLArr[ "tags" ][ "layer" ][ "val" ] ) )
           {
             $dataToInsertLArr[ "tags" ][ "layer" ][ "val" ] = $setupMapCursorLObj[ "layer_default" ];
           }
-
           $this->collectionWaysCObj->insert(
             $dataToInsertLArr
           );
