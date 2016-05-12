@@ -127,6 +127,9 @@
         $lineLX = str_replace( "\\n", "\n", $lineLX );
         $lineLX = json_decode( $lineLX, 1 );
         unset( $lineLX[ "_id" ] );
+        if( is_null( $lineLX ) ){
+          continue;
+        }
         $fillSetupCollectionLObj->insert( $lineLX );
       }
 

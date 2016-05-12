@@ -59,14 +59,29 @@
      * Construtor da classe.
      */
     public function connect() {
-      $this->connectionCObj = new MongoClient( $_SERVER[ "mongo_connection_string" ], $_SERVER[ "mongo_options_array" ], $_SERVER[ "mongo_drive_options_array" ] );
+      
+      if( !is_array( $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ] ) ){
+        $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ] = json_decode( $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ], true );
+      }
+      if( !is_array( $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ] ) ){
+        $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ] = array();
+      }
+      
+      if( !is_array( $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] ) ){
+        $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] = json_decode( $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ], true );
+      }
+      if( !is_array( $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] ) ){
+        $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] = array();
+      }
+      
+      $this->connectionCObj = new MongoClient( $_SERVER[ "GEOINFO_MONGO_CONNECTION_STRING" ], $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ], $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] );
       $this->setDataBase();
 
     }
 
     public function setDataBase( $dataBaseAStr = null ) {
       if( is_null( $dataBaseAStr ) ){
-        $this->dataBaseCObj        = $this->connectionCObj->$_SERVER[ "mongo_database" ];
+        $this->dataBaseCObj        = $this->connectionCObj->$_SERVER[ "GEOINFO_MONGO_DATABASE_STRING" ];
       }
       else{
         $this->dataBaseCObj        = $this->connectionCObj->$dataBaseAStr;

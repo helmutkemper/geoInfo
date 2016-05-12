@@ -10,7 +10,7 @@
      */
     public static function encrypt ( $dataAX )
     {
-      return bin2hex ( mcrypt_encrypt ( MCRYPT_RIJNDAEL_256, $_SERVER[ "crypt_key" ], serialize ( $dataAX ), MCRYPT_MODE_ECB, mcrypt_create_iv ( mcrypt_get_iv_size ( MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB ), MCRYPT_RAND ) ) );
+      return bin2hex ( mcrypt_encrypt ( MCRYPT_RIJNDAEL_256, $_SERVER[ "GEOINFO_CRYPT_KEY" ], serialize ( $dataAX ), MCRYPT_MODE_ECB, mcrypt_create_iv ( mcrypt_get_iv_size ( MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB ), MCRYPT_RAND ) ) );
     }
 
     /** Descriptografa uma String em formato string hexadecimal e devolve o dado original.
@@ -21,7 +21,7 @@
      */
     public static function decrypt ( $dataAX )
     {
-      return unserialize ( mcrypt_decrypt ( MCRYPT_RIJNDAEL_256, $_SERVER[ "crypt_key" ], hex2bin ( $dataAX ), MCRYPT_MODE_ECB, mcrypt_create_iv ( mcrypt_get_iv_size ( MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB ), MCRYPT_RAND ) ) );
+      return unserialize ( mcrypt_decrypt ( MCRYPT_RIJNDAEL_256, $_SERVER[ "GEOINFO_CRYPT_KEY" ], hex2bin ( $dataAX ), MCRYPT_MODE_ECB, mcrypt_create_iv ( mcrypt_get_iv_size ( MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB ), MCRYPT_RAND ) ) );
     }
   }
     

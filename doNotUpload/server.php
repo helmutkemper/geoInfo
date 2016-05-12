@@ -1,7 +1,6 @@
 <?php
-
-
-  $_SERVER[ "DISPLAY_ERROS" ] = 0;
+  
+  $_SERVER[ "DISPLAY_ERROS" ] = 1;
 
   // on/off para definir o formato da saída como json ou string de teste
   $_SERVER[ "json_output" ] = "on";
@@ -32,29 +31,6 @@
   $_SERVER[ "NextPrevPageExpirationInterval" ] = 7200;
 
   $_SERVER[ "crypt_key" ] = "qazxswedcvfrtgbnhyujmikolp123456";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   $_SERVER[ "mongo_connection_string" ]   = null;
   $_SERVER[ "mongo_options_array" ]       = array("socketTimeoutMS" => "90000");

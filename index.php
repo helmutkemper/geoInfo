@@ -1,5 +1,5 @@
 <?php
-
+  //t2.medium
 /*
   $c = new MongoClient();
   $db = $c->qconsp;
@@ -23,9 +23,16 @@
 
   session_start ();
 
-  define( "CLASS_URL_UINT", 3 );
-  define( "MODULE_URL_UINT", 4 );
-  define( "CONTROLLER_URL_UINT", 5 );
+  if( $_SERVER["HTTP_HOST"] == "localhost" ){
+    define( "CLASS_URL_UINT", 1 );
+    define( "MODULE_URL_UINT", 2 );
+    define( "CONTROLLER_URL_UINT", 3 );
+  }
+  else{
+    define( "CLASS_URL_UINT", 0 );
+    define( "MODULE_URL_UINT", 1 );
+    define( "CONTROLLER_URL_UINT", 2 );
+  }
 
   define ( "TIMEZONE_DEFAULT", "Europe/London" );
 
@@ -47,7 +54,7 @@
     ob_start ();
   }
 
-  ini_set('display_errors', ( String ) $_SERVER[ "DISPLAY_ERROS" ] );
+  ini_set('display_errors', ( String ) $_SERVER[ "GEOINFO_DISPLAY_ERROS" ] );
   error_reporting( E_ALL ^ E_NOTICE );
 
   if ( !trim ( $_SERVER[ "REQUEST_SCHEME" ] ) )
@@ -56,7 +63,7 @@
   }
 
   if( isset( $_SERVER[ "GEOINFO_TIMEZONE_DEFAULT" ] ) ){
-    date_default_timezone_set ( $_SERVER[ "TIMEZONE_DEFAULT" ] );
+    date_default_timezone_set ( $_SERVER[ "GEOINFO_TIMEZONE_DEFAULT" ] );
   }
   else{
     date_default_timezone_set ( TIMEZONE_DEFAULT );
@@ -166,6 +173,14 @@
 
     // Divide as variáveis passadas por URL
     $dataByUrlGArr        =  explode ( "/", @$_SERVER[ "REDIRECT_URL" ] );
+
+    foreach ( $dataByUrlGArr as $dataUrlKeyGStr => $dataUrlGStr ){
+      unset( $dataByUrlGArr[ $dataUrlKeyGStr ] );
+      if( $dataUrlGStr === "" ){
+        break;
+      }
+    }
+    $dataByUrlGArr = array_merge( $dataByUrlGArr, array() );
 
     foreach ( $dataByUrlGArr as $dataUrlGStr )
     {
@@ -437,7 +452,7 @@
             "total_count" => ( INT )$pageTotalGObj,
             "success" => true,
             "action" => $headerActionGArr,
-            "error" => array( Crypt::decrypt( $cryptQueryGStr ) ),
+            "error" => null,
             "processes_end" => $processEndGBoo
           ),
           "objects" => $returnGArr
@@ -553,7 +568,7 @@
         "previous"      =>  null,
         "total_count"   =>  0,
         "success"       =>  false,
-        "error"         =>  $errorGArr,
+        "error"         =>  $dataByUrlGArr,
         "action"        => $headerActionGArr,
         "processes_end" => $processEndGBoo
       ),
