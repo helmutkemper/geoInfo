@@ -1,6 +1,6 @@
 <?php
   
-  $_SERVER[ "DISPLAY_ERROS" ] = 1;
+  $_SERVER[ "GEOINFO_DISPLAY_ERROS" ] = 1;
 
   // on/off para definir o formato da saída como json ou string de teste
   $_SERVER[ "json_output" ] = "on";
@@ -30,9 +30,9 @@
 
   $_SERVER[ "NextPrevPageExpirationInterval" ] = 7200;
 
-  $_SERVER[ "crypt_key" ] = "qazxswedcvfrtgbnhyujmikolp123456";
+  $_SERVER[ "GEOINFO_CRYPT_KEY" ] = "qazxswedcvfrtgbnhyujmikolp123456";
 
-  $_SERVER[ "mongo_connection_string" ]   = null;
-  $_SERVER[ "mongo_options_array" ]       = array("socketTimeoutMS" => "90000");
-  $_SERVER[ "mongo_drive_options_array" ] = array();
-  $_SERVER[ "mongo_database" ]            = "curriculo_2";
+  $_SERVER[ "GEOINFO_MONGO_CONNECTION_STRING" ]   = null;
+  $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ]       = array("socketTimeoutMS" => "90000");
+  $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] = array();
+  $_SERVER[ "GEOINFO_MONGO_DATABASE_STRING" ]            = "curriculo_2";

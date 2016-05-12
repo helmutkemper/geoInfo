@@ -568,7 +568,7 @@
         "previous"      =>  null,
         "total_count"   =>  0,
         "success"       =>  false,
-        "error"         =>  $dataByUrlGArr,
+        "error"         =>  $errorGArr,
         "action"        => $headerActionGArr,
         "processes_end" => $processEndGBoo
       ),

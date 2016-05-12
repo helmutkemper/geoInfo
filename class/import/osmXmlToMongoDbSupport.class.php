@@ -492,6 +492,10 @@
 
       $this->blockIndexCUInt += 1;
 
+      if( $skipAUInt == 0 ){
+        $skipAUInt = 1;
+      }
+
       return array(
         "block" => $this->blockIndexCUInt,
         "total" => ceil( $this->getNodeDataTotal() / $skipAUInt )
@@ -648,6 +652,10 @@
       }
 
       $this->blockIndexCUInt += 1;
+
+      if( $skipAUInt == 0 ){
+        $skipAUInt = 1;
+      }
 
       return array(
         "block" => $this->blockIndexCUInt,
