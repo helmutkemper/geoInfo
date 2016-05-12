@@ -492,17 +492,6 @@
 
       $this->blockIndexCUInt += 1;
 
-      $cursorTmpNodeLObj = $this->collectionTmpNodesCObj->find();
-      if( ( !is_null( $skipAUInt ) ) && ( !is_null( $limitAUInt ) ) )
-      {
-        $cursorTmpNodeLObj->skip( $skipAUInt + $limitAUInt );
-        $lixo = $cursorTmpNodeLObj->count();
-        if( $cursorTmpNodeLObj->count() == 0 ){
-          $a = $lixo;
-          $this->setProcessEnd();
-        }
-      }
-
       return array(
         "block" => $this->blockIndexCUInt,
         "total" => ceil( $this->getNodeDataTotal() / $skipAUInt )

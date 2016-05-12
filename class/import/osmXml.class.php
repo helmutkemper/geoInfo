@@ -258,16 +258,7 @@
 
         xml_parse( $parserXmlLObj, $osmXmlDataToParserLStr, feof( $resourceOsmFileLObj ) );
 
-        if( $this->fileLastByteReadCUInt == filesize( $this->osmFileNameCStr ) ){
-          $this->setProcessEnd();
-        }
-
         return $this->runNextPage();
-      }
-      else
-      {
-        $this->setProcessEnd();
-        return;
       }
     }
 

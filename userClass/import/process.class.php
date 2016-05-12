@@ -78,8 +78,6 @@
         "total" => 1
       );
 
-      $this->setProcessEnd();
-
       return array_merge( $returnLArr, $this->getUserData() );
     }
 
@@ -145,10 +143,6 @@
         "total" => ceil( filesize( $fileNameLStr ) / $fileSizeLUInt )
       );
 
-      if( ceil( filesize( $fileNameLStr ) / $fileSizeLUInt ) == $_SESSION[ "osmXmlToDataBase" ][ "blockIndex" ] ){
-        $this->setProcessEnd();
-      }
-
       return array_merge( $returnLArr, $this->getUserData() );
     }
 
@@ -177,10 +171,6 @@
 
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
       $this->setPageNextLink( $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block=" . $this->getDataBlock() );
-
-      if( $this->getProcessEnd() ){
-        $_SESSION[ "osmXmlToDataBase" ] = array();
-      }
 
       return array_merge( $returnLArr, $this->getUserData() );
     }
@@ -235,10 +225,6 @@
 
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
       $this->setPageNextLink( $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block=" . $this->getDataBlock() );
-
-      if( $this->getProcessEnd() == true ){
-        $_SESSION[ "osmXmlToDataBase" ] = array();
-      }
 
       return array_merge( $returnLArr, $this->getUserData() );
     }

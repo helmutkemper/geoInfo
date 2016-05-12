@@ -66,18 +66,6 @@
       $errorGArr[] = $errorAStr;
     }
 
-    protected function setProcessEnd(){
-      global $processEndGBoo;
-
-      $processEndGBoo = true;
-    }
-
-    protected function getProcessEnd(){
-      global $processEndGBoo;
-
-      return $processEndGBoo;
-    }
-
     /** Define a saída em formato json com cabeçalho complementar para paginação. [ padrão ]
      * @code
       {
