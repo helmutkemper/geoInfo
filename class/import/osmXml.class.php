@@ -70,7 +70,7 @@
       $this->fileLastByteReadCUInt = $valueAUInt;
     }
 
-    public function processOsmFile ( $osmFileNameAStr )
+    public function processOsmFile ( $osmFileNameAStr, $dontStopABoo = false )
     {
       $this->osmFileNameCStr = $osmFileNameAStr;
 
@@ -91,9 +91,18 @@
         }
       }
 
+      if( $dontStopABoo == true ){
+        while ( ( $osmXmlFileDataLStr = fread( $resourceOsmFileLObj, $this->parserXmlBytesPerPageCUInt ) ) ){
+          if ( !xml_parse( $parserXmlLObj, $osmXmlFileDataLStr, feof( $resourceOsmFileLObj ) ) ){
+            throw new Exception ( sprintf( "XML error at line %d column %d", xml_get_current_line_number( $parserXmlLObj ), xml_get_current_column_number( $parserXmlLObj ) ) );
+          }
+        }
+        return;
+      }
+
       fseek( $resourceOsmFileLObj, $this->fileLastByteReadCUInt );
 
-      $osmXmlFileDataLStr    = fread( $resourceOsmFileLObj, $this->parserXmlBytesPerPageCUInt );
+      $osmXmlFileDataLStr = fread( $resourceOsmFileLObj, $this->parserXmlBytesPerPageCUInt );
 
       $osmXmlDataToParserLStr    = "";
       $osmXmlTmpDataToParserLStr = "";
@@ -258,7 +267,16 @@
 
         xml_parse( $parserXmlLObj, $osmXmlDataToParserLStr, feof( $resourceOsmFileLObj ) );
 
+        if( $this->fileLastByteReadCUInt == filesize( $this->osmFileNameCStr ) ){
+          $this->setProcessEnd();
+        }
+
         return $this->runNextPage();
+      }
+      else
+      {
+        $this->setProcessEnd();
+        return;
       }
     }
 

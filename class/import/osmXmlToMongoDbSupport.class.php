@@ -115,9 +115,9 @@
      * Esta coleção determina que pele usar para preencher polígonos específicos,cor e espessura das linhas de
      * construção das ruas, como o mapa se comporta para cada opção de zoom, etc.
      *
-     * @var $collectionSetupFill Object conexão com a coleção setupFill.
+     * @var $collectionSetupFillCObj Object conexão com a coleção setupFill.
      */
-    protected $collectionSetupFill;
+    protected $collectionSetupFillCObj;
 
     /**
      * Coleção de dados com as configurações da ferramenta draw, responsável por transformar o XML em um mapa gráfico de
@@ -125,9 +125,9 @@
      *
      * @warning Alterar esta coleção pode afetar de forma imprevista a forma como o mapa é desenhado.
      *
-     * @var $collectionSetupMap Object conexão com a coleção setupMap.
+     * @var $collectionSetupMapCObj Object conexão com a coleção setupMap.
      */
-    protected $collectionSetupMap;
+    protected $collectionSetupMapCObj;
 
     /**
      * Coleção de dados já formatada e pronta para uso com todos os pontos de interesse do mapa.
@@ -139,6 +139,8 @@
     protected $collectionKeyValueDistinctCObj;
 
     protected $blockIndexCUInt;
+    
+    protected $collectionImportStatusCObj;
 
     /**
      * Coleção de dados já formatada e pronta para uso com todas as linhas de construção do mapa.
@@ -159,11 +161,15 @@
     }
 
     public function getSetupFillPointer(){
-      return $this->collectionSetupFill;
+      return $this->collectionSetupFillCObj;
     }
 
     public function getSetupMapPointer(){
-      return $this->collectionSetupMap;
+      return $this->collectionSetupMapCObj;
+    }
+    
+    public function getImportStatus(){
+      return $this->collectionImportStatusCObj;
     }
 
     /**
@@ -171,14 +177,15 @@
      */
     public function setNewCollections()
     {
+      $this->collectionImportStatusCObj     = $this->dataBaseCObj->importStatus;
       $this->collectionTmpNodesCObj         = $this->dataBaseCObj->tmpNodes;
       $this->collectionTmpNodeTagCObj       = $this->dataBaseCObj->tmpNodeTag;
       $this->collectionTmpWaysCObj          = $this->dataBaseCObj->tmpWays;
       $this->collectionTmpWayTagCObj        = $this->dataBaseCObj->tmpWayTag;
       $this->collectionTmpWayNodeCObj       = $this->dataBaseCObj->tmpWaysNode;
 
-      $this->collectionSetupFill            = $this->dataBaseCObj->setupFill;
-      $this->collectionSetupMap             = $this->dataBaseCObj->setupMap;
+      $this->collectionSetupFillCObj        = $this->dataBaseCObj->setupFill;
+      $this->collectionSetupMapCObj         = $this->dataBaseCObj->setupMap;
 
       $this->collectionNodesCObj            = $this->dataBaseCObj->nodes;
       $this->collectionWaysCObj             = $this->dataBaseCObj->ways;
@@ -425,7 +432,7 @@
 
           if( $nodeTagDataLArr[ "k" ] == "type" )
           {
-            $fillDataLArr = $this->collectionSetupFill->findOne( array( "point_key" => $nodeTagDataLArr[ "k" ] ) );
+            $fillDataLArr = $this->collectionSetupFillCObj->findOne( array( "point_key" => $nodeTagDataLArr[ "k" ] ) );
             if( count( $fillDataLArr ) > 0 )
             {
               $nodeDataLArr[ "type" ] = $nodeTagDataLArr[ "v" ];

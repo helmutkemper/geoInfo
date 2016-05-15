@@ -17,9 +17,12 @@
       return array(
         "importFillSetup",
         "importMapSetup",
-        "importData",
-        "processNodeData",
-        "processWaysData",
+        "importDataByBrowser",
+        "importDataByProcess",
+        "processNodeDataByBrowser",
+        "processNodeDataByProcess",
+        "processWaysDataByBrowser",
+        "processWaysDataByProcess",
       );
     }
 
@@ -150,7 +153,24 @@
     }
 
     //http://localhost/open/html/import/index.html
-    public function importData(){
+    public function importDataByProcess(){
+      $this->init( size::MByte( 5 ) );
+      $this->setNewCollections();
+      $this->createIndex();
+
+      $returnLArr = $this->processOsmFile( "./map/brazil-latest.osm", true );
+
+      $this->setDataBlock( 1 );
+      $this->setPageLimit( 1 );
+      $this->setPageOffset( 0 );
+      $this->setPageTotal( 1 );
+
+      $this->setPageNextLink( null );
+
+      return array_merge( $returnLArr, $this->getUserData() );
+    }
+
+    public function importDataByBrowser(){
       if( isset( $_REQUEST[ "block" ] ) )
       {
         $this->setDataBlock( $_SESSION[ "osmXmlToDataBase" ][ "blockId" ] );
@@ -162,7 +182,7 @@
       $this->setNewCollections();
       $this->createIndex();
 
-      $returnLArr = $this->processOsmFile( "./support/brazil-latest.osm" );
+      $returnLArr = $this->processOsmFile( "./map/brazil-latest.osm" );
 
       $_SESSION[ "osmXmlToDataBase" ][ "blockId" ] = $this->getDataBlock();
       $_SESSION[ "osmXmlToDataBase" ][ "fileLastByteRead" ] = $this->getFilePointer();
@@ -178,7 +198,7 @@
       return array_merge( $returnLArr, $this->getUserData() );
     }
 
-    public function processNodeData(){
+    public function processNodeDataByBrowser(){
       if ( !isset( $_REQUEST[ "block" ] ) ){
         $_SESSION[ "osmXmlToDataBase" ] = array();
         $_SESSION[ "osmXmlToDataBase" ][ "limit" ] = process::PAGE_LIMIT;
@@ -207,7 +227,21 @@
       return array_merge( $returnLArr, $this->getUserData() );
     }
 
-    public function processWaysData(){
+    public function processNodeDataByProcess(){
+      $this->setNewCollections();
+      $returnLArr = $this->concatenateNodeData();
+
+      $this->setDataBlock( 1 );
+      $this->setPageLimit( 1 );
+      $this->setPageOffset( 0 );
+      $this->setPageTotal( 1 );
+
+      $this->setPageNextLink( null );
+
+      return array_merge( $returnLArr, $this->getUserData() );
+    }
+
+    public function processWaysDataByBrowser(){
       if ( !isset( $_REQUEST[ "block" ] ) ){
         $_SESSION[ "osmXmlToDataBase" ] = array();
         $_SESSION[ "osmXmlToDataBase" ][ "limit" ] = process::PAGE_LIMIT;
@@ -228,6 +262,21 @@
 
       $_SERVER[ "REQUEST_URI" ] = preg_replace( "%(.*?)(\?.*)%", "$1", $_SERVER[ "REQUEST_URI" ] );
       $this->setPageNextLink( $_SERVER[ "REQUEST_SCHEME" ] . "://" . $_SERVER[ "HTTP_HOST" ] . $_SERVER[ "REQUEST_URI" ] . "?block=" . $this->getDataBlock() );
+
+      return array_merge( $returnLArr, $this->getUserData() );
+    }
+
+    public function processWaysDataByProcess(){
+      $this->setNewCollections();
+
+      $returnLArr = $this->concatenateWayTagsAndNodes();
+
+      $this->setDataBlock( 1 );
+      $this->setPageLimit( 1 );
+      $this->setPageOffset( 0 );
+      $this->setPageTotal( 1 );
+
+      $this->setPageNextLink( null );
 
       return array_merge( $returnLArr, $this->getUserData() );
     }
