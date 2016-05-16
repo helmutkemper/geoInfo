@@ -792,12 +792,13 @@
       if( count( $dataLArr ) ){
         return false;
       }
+      $utcDateTimeLObj = new MongoDB\BSON\UTCDateTime( date( "u" ) );
       $this->collectionImportFileCObj->insert(
         array(
           "fileName" => $osmFileNameAStr,
           "md5" => $md5AStr,
           "isProcessing" => true,
-          "start" => array( '$currentDate' => array( '$type' => "timestamp" ) ),
+          "start" => date( "c" ),
           "end" => null
         )
       );
@@ -805,6 +806,7 @@
     }
 
     protected function setFileProcessEnd( $osmFileNameAStr, $md5AStr ){
+      $utcDateTimeLObj = new MongoDB\BSON\UTCDateTime( date( "u" ) );
       $this->collectionImportFileCObj->update(
         array(
           "fileName" => $osmFileNameAStr,
@@ -813,7 +815,7 @@
         array(
           '$set' => array(
             "isProcessing" => false,
-            "end" => array( '$currentDate' => array( '$type' => "timestamp" ) )
+            "end" => date( "c" )
           )
         )
       );
