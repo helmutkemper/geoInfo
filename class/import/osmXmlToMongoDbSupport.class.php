@@ -71,6 +71,9 @@
    */
   class osmXmlToMongoDbSupport extends normalize
   {
+    const MAP_DEFAULT_LAYER = 0;
+
+    protected $fileMd5CStr;
     /**
      * Coleção de dados com os pontos de interesse contidos no mapa.
      * Perceba como pontos de interesse locais como cidades, vilas, farmácias, hoteis, semáforos, etc.
@@ -141,6 +144,7 @@
     protected $blockIndexCUInt;
     
     protected $collectionImportStatusCObj;
+    protected $collectionImportFileCObj;
 
     /**
      * Coleção de dados já formatada e pronta para uso com todas as linhas de construção do mapa.
@@ -158,6 +162,19 @@
       }
 
       parent::__construct();
+    }
+
+    protected function setMd5( $md5AStr ){
+      if( is_readable( $md5AStr ) ){
+        $this->fileMd5CStr = md5( $md5AStr );
+      }
+      else{
+        $this->fileMd5CStr = $md5AStr;
+      }
+    }
+
+    protected function getMd5(){
+      return $this->fileMd5CStr;
     }
 
     public function getSetupFillPointer(){
@@ -191,6 +208,7 @@
       $this->collectionWaysCObj             = $this->dataBaseCObj->ways;
       
       $this->collectionKeyValueDistinctCObj = $this->dataBaseCObj->keyValueDistinct;
+      $this->collectionImportFileCObj       = $this->dataBaseCObj->fileToProcess;
     }
 
     /**
@@ -242,12 +260,18 @@
       if( !$this->getIndexExists( $indexInfoLArr, "osm_lat_lng" ) ){
         $this->collectionTmpNodesCObj->createIndex( array( "latitde" => 1, "longitude" => 1 ), array( "name" => "osm_lat_lng" ) );
       }
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_file_md5" ) ){
+        $this->collectionTmpNodesCObj->createIndex( array( "file_md5" => 1 ), array( "name" => "osm_file_md5" ) );
+      }
 
       // coleção tmpNodeTag
       $indexInfoLArr =  $this->collectionTmpNodeTagCObj->getIndexInfo();
 
       if( !$this->getIndexExists( $indexInfoLArr, "osm_id_node" ) ){
         $this->collectionTmpNodeTagCObj->createIndex( array( "id_node" => 1 ), array( "name" => "osm_id_node" ) );
+      }
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_file_md5" ) ){
+        $this->collectionTmpNodeTagCObj->createIndex( array( "file_md5" => 1 ), array( "name" => "osm_file_md5" ) );
       }
 
       // coleção nodes
@@ -275,6 +299,9 @@
       if( !$this->getIndexExists( $indexInfoLArr, "osm_id_way" ) ){
         $this->collectionTmpWaysCObj->createIndex( array( "id_way" => 1 ), array( "name" => "osm_id_way" ) );
       }
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_file_md5" ) ){
+        $this->collectionTmpWaysCObj->createIndex( array( "file_md5" => 1 ), array( "name" => "osm_file_md5" ) );
+      }
 
       // coleção tmpWayTag
       $indexInfoLArr =  $this->collectionTmpWayTagCObj->getIndexInfo();
@@ -282,12 +309,18 @@
       if( !$this->getIndexExists( $indexInfoLArr, "osm_id_way" ) ){
         $this->collectionTmpWayTagCObj->createIndex( array( "id_way" => 1 ), array( "name" => "osm_id_way" ) );
       }
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_file_md5" ) ){
+        $this->collectionTmpWayTagCObj->createIndex( array( "file_md5" => 1 ), array( "name" => "osm_file_md5" ) );
+      }
 
       // coleção tmpWayNode
       $indexInfoLArr =  $this->collectionTmpWayNodeCObj->getIndexInfo();
 
       if( !$this->getIndexExists( $indexInfoLArr, "osm_id_way" ) ){
         $this->collectionTmpWayNodeCObj->createIndex( array( "id_way" => 1 ), array( "name" => "osm_id_way" ) );
+      }
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_file_md5" ) ){
+        $this->collectionTmpWayNodeCObj->createIndex( array( "file_md5" => 1 ), array( "name" => "osm_file_md5" ) );
       }
 
       if( !$this->getIndexExists( $indexInfoLArr, "osm_id_node" ) ){
@@ -322,6 +355,12 @@
 
       if( !$this->getIndexExists( $indexInfoLArr, "osm_nodes_2d" ) ){
         $this->collectionWaysCObj->createIndex( array( "nodes" => "2d", "bits" => 26 ), array( "name" => "osm_nodes_2d_26bits" ) );
+      }
+
+      $indexInfoLArr =  $this->collectionImportFileCObj->getIndexInfo();
+
+      if( !$this->getIndexExists( $indexInfoLArr, "osm_file_name" ) ){
+        $this->collectionImportFileCObj->createIndex( array( "fileName" => 1, "md5" => 1 ), array( "name" => "osm_file_name" ) );
       }
     }
 
@@ -382,14 +421,18 @@
 
     public function getNodeDataTotal(){
       $cursorTmpNodeLObj = $this->collectionTmpNodesCObj->find(
-        array()
+        array(
+          "file_md5" => $this->fileMd5CStr
+        )
       );
       return $cursorTmpNodeLObj->count();
     }
 
     public function getWayDataTotal(){
       $cursorTmpNodeLObj = $this->collectionTmpWaysCObj->find(
-        array()
+        array(
+          "file_md5" => $this->fileMd5CStr
+        )
       );
       return $cursorTmpNodeLObj->count();
     }
@@ -397,7 +440,9 @@
     public function concatenateNodeData( $limitAUInt = null, $skipAUInt = null )
     {
       $cursorTmpNodeLObj = $this->collectionTmpNodesCObj->find(
-        array()
+        array(
+          "file_md5" => $this->fileMd5CStr
+        )
       );
 
       if( !is_null( $skipAUInt ) )
@@ -481,7 +526,15 @@
         {
           if( count( $keyRef ) > 0 )
           {
-            $this->collectionNodesCObj->insert( array_merge( $nodeDataLArr, array( "tags" => $keyRef ) ) );
+            $this->collectionNodesCObj->insert(
+              array_merge(
+                $nodeDataLArr,
+                array(
+                  "tags" => $keyRef,
+                  "file_md5" => $this->fileMd5CStr
+                )
+              )
+            );
           }
         }
         catch( Exception $e )
@@ -519,19 +572,20 @@
           "version" => ( int ) $versionAUInt,
           "visible" => ( bool ) $visibleABol,
           "latitude" => ( double ) $latitudeAFlt,
-          "longitude" => ( double ) $longitudeAFlt
+          "longitude" => ( double ) $longitudeAFlt,
+          "file_md5" => $this->fileMd5CStr
         )
       );
     }
 
     public function concatenateWayTagsAndNodes( $limitAUInt = null, $skipAUInt = null )
     {
-      // Procura pelo setup do mapa
-      $setupMapCollectionLObj  = $this->dataBaseCObj->setupMap;
-      $setupMapCursorLObj = $setupMapCollectionLObj->findOne();
-
       // Procura por todos os ways contidos no mapa
-      $cursorWaysLObj = $this->collectionTmpWaysCObj->find( array() );
+      $cursorWaysLObj = $this->collectionTmpWaysCObj->find(
+        array(
+          "file_md5" => $this->fileMd5CStr
+        )
+      );
 
       if( !is_null( $skipAUInt ) )
       {
@@ -626,12 +680,13 @@
               "tags" => $keyRef,
               "nodes" => $wayNodesLArr,
               "nodeFirst" => $wayNodesLArr[ 0 ],
-              "nodeLast" => $wayNodesLArr[ count($wayNodesLArr) - 1 ]
+              "nodeLast" => $wayNodesLArr[ count($wayNodesLArr) - 1 ],
+              "file_md5" => $this->fileMd5CStr
             )
           );
           if( !isset( $dataToInsertLArr[ "tags" ][ "layer" ][ "val" ] ) )
           {
-            $dataToInsertLArr[ "tags" ][ "layer" ][ "val" ] = $setupMapCursorLObj[ "layer_default" ];
+            $dataToInsertLArr[ "tags" ][ "layer" ][ "val" ] = osmXmlToMongoDbSupport::MAP_DEFAULT_LAYER;
           }
           $this->collectionWaysCObj->insert(
             $dataToInsertLArr
@@ -679,7 +734,8 @@
           "id_changesets" => ( int ) $changeSetAUInt,
           "id_user" => ( int ) $userOsmIdAUInt,
           "version" => ( int ) $versionAUInt,
-          "visible" => ( bool ) $visibleABol
+          "visible" => ( bool ) $visibleABol,
+          "file_md5" => $this->fileMd5CStr
         )
       );
     }
@@ -691,7 +747,8 @@
           "id_node" => ( int ) $xmlPreviousIdReferenceAUInt,
           "version" => ( int ) $versionAUInt,
           "k" => /*utf8_encode*/( $tagKAttributeAStr ),
-          "v" => /*utf8_encode*/( $tagVAttributeAStr )
+          "v" => /*utf8_encode*/( $tagVAttributeAStr ),
+          "file_md5" => $this->fileMd5CStr
         )
       );
     }
@@ -703,7 +760,8 @@
           "id_way" => ( int ) $xmlPreviousIdReferenceAUInt,
           "version" => ( int ) $versionAUInt,
           "k" => /*utf8_encode*/( $tagKAttributeAStr ),
-          "v" => /*utf8_encode*/( $tagVAttributeAStr )
+          "v" => /*utf8_encode*/( $tagVAttributeAStr ),
+          "file_md5" => $this->fileMd5CStr
         )
       );
     }
@@ -713,7 +771,8 @@
       $this->collectionTmpWayNodeCObj->insert(
         array(
           "id_way" => ( int ) $xmlPreviousIdReferenceAUInt,
-          "id_node" => ( int ) $nodeIdAUInt
+          "id_node" => ( int ) $nodeIdAUInt,
+          "file_md5" => $this->fileMd5CStr
         )
       );
     }
@@ -721,5 +780,42 @@
     public function createOsmUser( $idUserOsmAUInt, $nameUserOsmAStr, $idUserAUInt = 1 )
     {
 
+    }
+    
+    protected function itIsToProcessThisFile( $osmFileNameAStr, $md5AStr ){
+      $dataLArr = $this->collectionImportFileCObj->findOne(
+        array(
+          "fileName" => $osmFileNameAStr,
+          "md5" => $md5AStr
+        )
+      );
+      if( count( $dataLArr ) ){
+        return false;
+      }
+      $this->collectionImportFileCObj->insert(
+        array(
+          "fileName" => $osmFileNameAStr,
+          "md5" => $md5AStr,
+          "isProcessing" => true,
+          "start" => array( '$currentDate' => array( '$type' => "timestamp" ) ),
+          "end" => null
+        )
+      );
+      return true;
+    }
+
+    protected function setFileProcessEnd( $osmFileNameAStr, $md5AStr ){
+      $this->collectionImportFileCObj->update(
+        array(
+          "fileName" => $osmFileNameAStr,
+          "md5" => $md5AStr
+        ),
+        array(
+          '$set' => array(
+            "isProcessing" => false,
+            "end" => array( '$currentDate' => array( '$type' => "timestamp" ) )
+          )
+        )
+      );
     }
   }

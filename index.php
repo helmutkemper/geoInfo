@@ -1,4 +1,5 @@
 <?php
+
   //t2.medium
 /*
   $c = new MongoClient();
@@ -72,6 +73,7 @@
   include_once( "./class/mongodb/db.class.php" );
   include_once( "./class/mongodb/normalize.class.php" );
   include_once( "./class/crypt/crypt.class.php" );
+  include_once( "./class/token/Token.class.php" );
   include_once( "./class/util/util.class.php" );
   include_once( "./class/util/utilGeo.class.php" );
 

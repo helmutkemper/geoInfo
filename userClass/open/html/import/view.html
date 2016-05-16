@@ -1,0 +1,142 @@
+<html>
+<head>
+  <style>
+    html {
+      font: 14px sans-serif;
+      margin: 0px auto;
+      width: 600px;
+    }
+    #container {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      align-content: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    table {
+      margin: 0 auto; /* or margin: 0 auto 0 auto */
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600,800,900" rel="stylesheet" type="text/css">
+  <script language="JavaScript" src="../../js/jquery-2.2.0.min.js"></script>
+  <!--script language="JavaScript" src="../../js/progressbar.min.js" charset="utf-8"></script-->
+  <script>
+
+    var bar, loadingFunction;
+    var dataToSend = {};
+    var successDataGBoo = true;
+    var checkTimeOut;
+
+    var processGStr = 'starting';
+    var urlGStr = "../../../import/view/viewNow/";
+
+    $( document ).ready( function(){
+
+      $( '#process').html( 'Importing the map / Importando o mapa' );
+      loadingFunction = function() {
+        $.getJSON( urlGStr, dataToSend )
+          .done(
+            function( jsonData ) {
+
+              if( jsonData.objects.processing == 0 ){
+                $( '#status').html( "All done." );
+              }
+              else{
+                $( '#status').html( "Processing" );
+              }
+
+              $( '#tmpNodes').html( jsonData.objects.tmpNodes );
+              $( '#tmpNodesTags').html( jsonData.objects.tmpNodesTags );
+              $( '#setupMap').html( jsonData.objects.setupMap );
+              $( '#setupFill').html( jsonData.objects.setupFill );
+              $( '#tmpWayNode').html( jsonData.objects.tmpWayNode );
+              $( '#tmpWays').html( jsonData.objects.tmpWays );
+              $( '#tmpWaysTags').html( jsonData.objects.tmpWaysTags );
+              $( '#ways').html( jsonData.objects.ways );
+              $( '#nodes').html( jsonData.objects.nodes );
+              $( '#KeyValDist').html( jsonData.objects.KeyValDist );
+              $( '#processing').html( jsonData.objects.processing );
+
+              successDataGBoo = true;
+            }
+          )
+          .fail(function( jsonData ) {
+            $( '#status').html( "Internal server error / Erro do servidor" );
+            clearTimeout( checkTimeOut );
+          });
+      }
+
+      checkTimeOut = setInterval(
+        function(){
+          if( successDataGBoo == true ){
+            successDataGBoo = false;
+            loadingFunction();
+          }
+        },
+        500
+      );
+    });
+  </script>
+</head>
+<body>
+  <div>&nbsp;</div>
+  <div>&nbsp;</div>
+  <div>
+    <table border="0" width="300px">
+      <tr>
+        <td style="width: 30%; text-align: right">status:</td>
+        <td id="status" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">tmpNodes:</td>
+        <td id="tmpNodes" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">tmpNodesTags:</td>
+        <td id="tmpNodesTags" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">tmpWayNode:</td>
+        <td id="tmpWayNode" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">tmpWays:</td>
+        <td id="tmpWays" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">tmpWaysTags:</td>
+        <td id="tmpWaysTags" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">nodes:</td>
+        <td id="nodes" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">ways:</td>
+        <td id="ways" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">keys list:</td>
+        <td id="KeyValDist" style="width: 70%; text-align: left">...</td>
+      </tr>
+      <tr>
+        <td style="width: 30%; text-align: right">Files to import:</td>
+        <td id="processing" style="width: 70%; text-align: left">...</td>
+      </tr>
+    </table>
+  </div>
+  <div>&nbsp;</div>
+  <div>&nbsp;</div>
+  <div>&nbsp;</div>
+  <div>Português:</div>
+  <div>&nbsp;</div>
+  <div>Parabéns, o servidor foi instalado e agora está importando os dados mais recentes do <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMaps</a></div>
+  <div>&nbsp;</div>
+  <div>Esta é a versão 0.1 e você necessita deixar o navegador aberto enquanto o arquivo é tratado. Caso você tenha algum problema no processo de importação, nesta versão, hainda há o risco do dado duplicar, por isto, é bom apagar o banco e começar de novo.</div>
+  <div>&nbsp;</div>
+  <div>Caso você tenha problemas de <strong>timeout</strong>, abra o arquivo <strong>'userClass/import/process.class.php'</strong>, procure pela linha <strong>'$this->init( size::MByte( 5 ) );'</strong> e diminua o valor do arquivo lido.</div>
+  <div>&nbsp;</div>
+  <div>Para mais informações, por favor, consulte o meu blog, <a href="http://www.kemper.com.br" target="_blank">http://www.kemper.com.br</a></div>
+</body>
+</html>

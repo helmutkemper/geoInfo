@@ -23,6 +23,7 @@
     protected $previousFileTextCStr;
     //protected $compressDataCStr;
     protected $fileLastByteReadCUInt;
+    
 
     public function __construct()
     {
@@ -70,8 +71,16 @@
       $this->fileLastByteReadCUInt = $valueAUInt;
     }
 
-    public function processOsmFile ( $osmFileNameAStr, $dontStopABoo = false )
+    public function processOsmFile ( $osmFileNameAStr, $dontStopABoo = false, $checkABoo = true )
     {
+      if( is_null( $this->fileMd5CStr ) ){
+        $this->fileMd5CStr = md5( $osmFileNameAStr );
+      }
+
+      if( ( !$this->itIsToProcessThisFile( $osmFileNameAStr, $this->fileMd5CStr ) && ( $checkABoo == true ) ) ){
+        throw new Exception ( "This file is already included in the processing queue / Este arquivo já consta na fila de processamento: {$osmFileNameAStr}." );
+      }
+      
       $this->osmFileNameCStr = $osmFileNameAStr;
 
       $parserXmlLObj = xml_parser_create( "UTF-8" );

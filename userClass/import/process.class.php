@@ -54,6 +54,9 @@
       $collectionLObj = $this->collectionWaysCObj->find();
       $waysCountLUInt = $collectionLObj->count();
 
+      $collectionLObj = $this->$this->collectionKeyValueDistinctCObj->find();
+      $KeyValueDistinctUInt = $collectionLObj->count();
+
       return array(
         "tmpNodes" => $tmpNodesCountLUInt,
         "tmpNodesTags" => $tmpNodesTagsCountLUInt,
@@ -63,7 +66,8 @@
         "setupFill" => $tmpFillSetupCountLUInt,
         "setupMap" => $tmpSetupMapCountLUInt,
         "nodes" => $nodesCountLUInt,
-        "ways" => $waysCountLUInt
+        "ways" => $waysCountLUInt,
+        "KeyValDist" => $KeyValueDistinctUInt
       );
     }
 

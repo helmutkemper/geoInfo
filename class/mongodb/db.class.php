@@ -73,10 +73,17 @@
       if( !is_array( $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] ) ){
         $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] = array();
       }
-      
-      $this->connectionCObj = new MongoClient( $_SERVER[ "GEOINFO_MONGO_CONNECTION_STRING" ], $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ], $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] );
-      $this->setDataBase();
 
+      try{
+        $this->connectionCObj = new MongoClient( $_SERVER[ "GEOINFO_MONGO_CONNECTION_STRING" ], $_SERVER[ "GEOINFO_MONGO_OPTIONS_ARRAY" ], $_SERVER[ "GEOINFO_MONGO_DRIVE_OPTIONS_ARRAY" ] );
+        $this->setDataBase();
+      }
+      catch( MongoConnectionException $e ){
+        throw new Exception( $e->getMessage() );
+      }
+      catch( Exception $e ){
+        throw new Exception( $e->getMessage() );
+      }
     }
 
     public function setDataBase( $dataBaseAStr = null ) {
