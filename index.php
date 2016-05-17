@@ -24,16 +24,9 @@
 
   session_start ();
 
-  if( $_SERVER["HTTP_HOST"] == "localhost" ){
-    define( "CLASS_URL_UINT", 1 );
-    define( "MODULE_URL_UINT", 2 );
-    define( "CONTROLLER_URL_UINT", 3 );
-  }
-  else{
-    define( "CLASS_URL_UINT", 0 );
-    define( "MODULE_URL_UINT", 1 );
-    define( "CONTROLLER_URL_UINT", 2 );
-  }
+  define( "CLASS_URL_UINT", 0 );
+  define( "MODULE_URL_UINT", 1 );
+  define( "CONTROLLER_URL_UINT", 2 );
 
   define ( "TIMEZONE_DEFAULT", "Europe/London" );
 

@@ -41,6 +41,7 @@
 
               if( jsonData.objects.processing == 0 ){
                 $( '#status').html( "All done." );
+                clearTimeout( checkTimeOut );
               }
               else{
                 $( '#status').html( "Processing" );
